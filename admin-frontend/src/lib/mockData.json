@@ -1,0 +1,208 @@
+{
+  "adminUser": {
+    "id": "admin-001",
+    "full_name": "Arjun Mehta",
+    "email": "admin@htge.in",
+    "role": "SUPER_ADMIN",
+    "avatar_url": null,
+    "is_active": true,
+    "two_fa_enabled": true,
+    "created_at": "2025-01-15T00:00:00Z"
+  },
+
+  "dashboard": {
+    "stats": {
+      "companies":   { "total": 28, "pending_approval": 5, "active": 20, "suspended": 3 },
+      "freelancers": { "total": 64, "pending_approval": 8, "active": 48, "available": 31, "busy": 17 },
+      "projects": {
+        "total": 93, "pending_review": 7, "assignment_pending": 4,
+        "assigned": 3, "payment_pending": 6, "ongoing": 18,
+        "completion_review": 2, "completed": 41, "dropped": 8, "disputed": 4
+      },
+      "finance": {
+        "total_payments": 2435000, "platform_revenue": 243500,
+        "freelancer_earnings": 1891500, "pending_payouts": 320000, "refunds": 89000
+      },
+      "disputes": { "open": 3, "pending": 4, "resolved": 12 }
+    },
+    "recentCompanies": [
+      { "id": "c-01", "company_name": "Nova Tech Solutions", "industry": "Software", "email": "nova@novatech.in", "status": "PENDING_APPROVAL", "created_at": "2026-09-10T08:00:00Z" },
+      { "id": "c-02", "company_name": "Blaze Digital Media", "industry": "Marketing", "email": "ceo@blazedigital.in", "status": "PENDING_APPROVAL", "created_at": "2026-09-09T14:30:00Z" },
+      { "id": "c-03", "company_name": "Orbis Fintech", "industry": "Finance", "email": "hr@orbisfintech.in", "status": "PENDING_APPROVAL", "created_at": "2026-09-09T09:15:00Z" }
+    ],
+    "urgentItems": [
+      { "id": "u-01", "type": "ASSIGNMENT_REQUIRED", "title": "CRM Rewrite needs freelancer assignment", "project_id": "p-05", "time": "2026-09-10T10:00:00Z" },
+      { "id": "u-02", "type": "DROP_REQUEST", "title": "Drop request on 'Payments API Integration'", "project_id": "p-02", "time": "2026-09-10T08:45:00Z" },
+      { "id": "u-03", "type": "DISPUTE", "title": "Dispute raised: 'Mobile Banking Dashboard'", "project_id": "p-08", "time": "2026-09-09T16:00:00Z" },
+      { "id": "u-04", "type": "PAYMENT_PENDING", "title": "Payment pending for 'E-Commerce Redesign'", "project_id": "p-01", "time": "2026-09-10T11:00:00Z" }
+    ],
+    "revenueChart": [
+      { "month": "Apr 2026", "revenue": 180000, "freelancer_earnings": 162000, "commission": 18000 },
+      { "month": "May 2026", "revenue": 245000, "freelancer_earnings": 220500, "commission": 24500 },
+      { "month": "Jun 2026", "revenue": 312000, "freelancer_earnings": 280800, "commission": 31200 },
+      { "month": "Jul 2026", "revenue": 289000, "freelancer_earnings": 260100, "commission": 28900 },
+      { "month": "Aug 2026", "revenue": 398000, "freelancer_earnings": 358200, "commission": 39800 },
+      { "month": "Sep 2026", "revenue": 243500, "freelancer_earnings": 219150, "commission": 24350 }
+    ],
+    "recentAuditLogs": [
+      { "id": "a-01", "action": "COMPANY_APPROVED", "entity": "TechWave Pvt Ltd", "admin": "Arjun Mehta", "time": "2026-09-10T11:30:00Z" },
+      { "id": "a-02", "action": "PROJECT_ASSIGNED", "entity": "Analytics Dashboard Build", "admin": "Arjun Mehta", "time": "2026-09-10T10:15:00Z" },
+      { "id": "a-03", "action": "PAYOUT_PROCESSED", "entity": "Rahul Sharma (₹28,000)", "admin": "Arjun Mehta", "time": "2026-09-10T09:00:00Z" },
+      { "id": "a-04", "action": "DISPUTE_RESOLVED", "entity": "Vendor Marketplace MVP", "admin": "Arjun Mehta", "time": "2026-09-09T17:45:00Z" },
+      { "id": "a-05", "action": "FREELANCER_APPROVED", "entity": "Priya Nair", "admin": "Arjun Mehta", "time": "2026-09-09T16:00:00Z" }
+    ]
+  },
+
+  "companies": [
+    { "id": "c-01", "company_name": "TechWave Pvt Ltd", "contact_name": "Vikram Singh", "email": "vikram@techwave.in", "phone": "+91 98765 43210", "industry": "Software", "website": "https://techwave.in", "status": "APPROVED", "total_projects": 8, "ongoing_projects": 2, "total_spent": 485000, "created_at": "2025-11-01T00:00:00Z" },
+    { "id": "c-02", "company_name": "HTGE Operations", "contact_name": "Rohan Kapoor", "email": "rohan@htge.in", "phone": "+91 87654 32109", "industry": "Consulting", "website": "https://htge.in", "status": "APPROVED", "total_projects": 18, "ongoing_projects": 7, "total_spent": 1250000, "created_at": "2025-08-15T00:00:00Z" },
+    { "id": "c-03", "company_name": "Nova Tech Solutions", "contact_name": "Anjali Patel", "email": "anjali@novatech.in", "phone": "+91 76543 21098", "industry": "Software", "website": "https://novatech.in", "status": "PENDING_APPROVAL", "total_projects": 0, "ongoing_projects": 0, "total_spent": 0, "created_at": "2026-09-10T08:00:00Z" },
+    { "id": "c-04", "company_name": "Blaze Digital Media", "contact_name": "Siddharth Rao", "email": "sid@blazedigital.in", "phone": "+91 65432 10987", "industry": "Marketing", "website": "https://blazedigital.in", "status": "PENDING_APPROVAL", "total_projects": 0, "ongoing_projects": 0, "total_spent": 0, "created_at": "2026-09-09T14:30:00Z" },
+    { "id": "c-05", "company_name": "Zeta Commerce", "contact_name": "Meena Iyer", "email": "meena@zetacommerce.in", "phone": "+91 54321 09876", "industry": "E-Commerce", "website": "https://zetacommerce.in", "status": "SUSPENDED", "total_projects": 4, "ongoing_projects": 0, "total_spent": 120000, "created_at": "2026-01-10T00:00:00Z" }
+  ],
+
+  "freelancers": [
+    { "id": "f-01", "full_name": "Rahul Sharma", "email": "rahul@freelancer.in", "phone": "+91 91234 56789", "skills": ["React", "TypeScript", "Node.js", "MongoDB"], "category": "Full Stack", "experience_years": 5, "bio": "Senior full-stack engineer with 5 years building SaaS products.", "portfolio_url": "https://rahulsharma.dev", "status": "APPROVED", "availability": "AVAILABLE", "kyc_verified": true, "rating": 4.8, "completed_projects": 24, "current_projects": 2, "total_earnings": 520000, "created_at": "2025-06-10T00:00:00Z" },
+    { "id": "f-02", "full_name": "Priya Nair", "email": "priya@design.in", "phone": "+91 82345 67890", "skills": ["Figma", "UI/UX", "Webflow", "CSS"], "category": "Design", "experience_years": 4, "bio": "UI/UX specialist crafting beautiful digital experiences.", "portfolio_url": "https://priyanair.design", "status": "APPROVED", "availability": "AVAILABLE", "kyc_verified": true, "rating": 4.9, "completed_projects": 18, "current_projects": 1, "total_earnings": 380000, "created_at": "2025-07-15T00:00:00Z" },
+    { "id": "f-03", "full_name": "Amit Verma", "email": "amit@backend.in", "phone": "+91 73456 78901", "skills": ["Python", "Django", "PostgreSQL", "AWS"], "category": "Backend", "experience_years": 6, "bio": "Backend engineer specializing in scalable systems.", "portfolio_url": "https://amitverma.tech", "status": "APPROVED", "availability": "BUSY", "kyc_verified": true, "rating": 4.6, "completed_projects": 31, "current_projects": 3, "total_earnings": 720000, "created_at": "2025-04-20T00:00:00Z" },
+    { "id": "f-04", "full_name": "Sara Thomas", "email": "sara@fullstack.in", "phone": "+91 64567 89012", "skills": ["React", "Node.js", "MySQL", "Docker"], "category": "Full Stack", "experience_years": 3, "bio": "Full stack developer with expertise in MERN stack.", "portfolio_url": "https://sarathomas.io", "status": "APPROVED", "availability": "AVAILABLE", "kyc_verified": false, "rating": 4.7, "completed_projects": 12, "current_projects": 1, "total_earnings": 210000, "created_at": "2025-10-01T00:00:00Z" },
+    { "id": "f-05", "full_name": "Kiran Bhat", "email": "kiran@mobile.in", "phone": "+91 55678 90123", "skills": ["Flutter", "Dart", "Firebase", "iOS"], "category": "Mobile", "experience_years": 4, "bio": "Mobile app developer building cross-platform apps.", "portfolio_url": "https://kiranbhat.dev", "status": "PENDING_APPROVAL", "availability": "AVAILABLE", "kyc_verified": false, "rating": null, "completed_projects": 0, "current_projects": 0, "total_earnings": 0, "created_at": "2026-09-08T00:00:00Z" },
+    { "id": "f-06", "full_name": "Divya Menon", "email": "divya@data.in", "phone": "+91 46789 01234", "skills": ["Python", "TensorFlow", "SQL", "Tableau"], "category": "Data Science", "experience_years": 3, "bio": "Data scientist turning raw data into business insights.", "portfolio_url": "https://divyamenon.ai", "status": "PENDING_APPROVAL", "availability": "AVAILABLE", "kyc_verified": false, "rating": null, "completed_projects": 0, "current_projects": 0, "total_earnings": 0, "created_at": "2026-09-09T00:00:00Z" }
+  ],
+
+  "projects": [
+    {
+      "id": "p-01", "company_id": "c-02", "title": "E-Commerce Platform Redesign",
+      "description": "We are looking for an experienced freelancer to redesign our e-commerce platform. The project includes UI/UX overhaul, responsive design implementation, and integration with existing backend systems. Must have 5+ years of experience in React and responsive design.",
+      "category": "Frontend", "required_skills": ["React", "Node.js", "MongoDB", "Figma", "Responsive Design"],
+      "budget": 150000, "currency": "INR", "timeline_days": 45, "deadline": "2025-02-15T00:00:00Z",
+      "status": "PAYMENT_PENDING",
+      "sample_links": [
+        { "title": "Figma Design System", "url": "https://figma.com/design-system" },
+        { "title": "Live Demo Prototype", "url": "https://demo.example.com" },
+        { "title": "API Specification Docs", "url": "https://docs.example.com" }
+      ],
+      "sample_docs": [
+        { "name": "dashboard_wireframe.png", "size": "1.4 MB", "type": "image/png" },
+        { "name": "checkout_user_flow.png", "size": "2.1 MB", "type": "image/png" },
+        { "name": "api_endpoints_doc.pdf", "size": "640 KB", "type": "application/pdf" }
+      ],
+      "approaches": 6, "reviewed_by": "admin-001", "reviewed_at": "2026-08-03T00:00:00Z",
+      "created_at": "2026-08-02T00:00:00Z", "updated_at": "2026-09-08T00:00:00Z",
+      "company": { "id": "c-02", "company_name": "HTGE Operations", "contact_name": "Rohan Kapoor" },
+      "assignment": { "id": "asgn-01", "freelancer_id": "f-01", "assigned_at": "2026-08-10T00:00:00Z", "freelancer": { "id": "f-01", "full_name": "Rahul Sharma", "category": "Full Stack" } }
+    },
+    {
+      "id": "p-02", "company_id": "c-02", "title": "Payments API Integration",
+      "description": "Integrate Razorpay and Stripe payment gateways into our existing Node.js backend. Requires webhook handling, subscription management, and refund flows.",
+      "category": "Backend", "required_skills": ["Node.js", "Razorpay", "Stripe", "PostgreSQL"],
+      "budget": 7200, "currency": "INR", "timeline_days": 14, "deadline": "2026-08-15T00:00:00Z",
+      "status": "DROP_REQUESTED", "approaches": 4, "created_at": "2026-07-28T00:00:00Z", "updated_at": "2026-09-09T00:00:00Z",
+      "company": { "id": "c-02", "company_name": "HTGE Operations", "contact_name": "Rohan Kapoor" }
+    },
+    {
+      "id": "p-03", "company_id": "c-01", "title": "Analytics Dashboard Build",
+      "description": "Build a comprehensive analytics dashboard using React and Chart.js, connecting to our existing REST API.",
+      "category": "Frontend", "required_skills": ["React", "Chart.js", "REST API", "TypeScript"],
+      "budget": 9500, "currency": "INR", "timeline_days": 20, "deadline": "2026-06-30T00:00:00Z",
+      "status": "COMPLETED", "approaches": 3, "created_at": "2026-05-14T00:00:00Z", "updated_at": "2026-07-01T00:00:00Z",
+      "company": { "id": "c-01", "company_name": "TechWave Pvt Ltd", "contact_name": "Vikram Singh" }
+    },
+    {
+      "id": "p-04", "company_id": "c-01", "title": "Client Onboarding Portal",
+      "description": "Create an interactive client onboarding portal with multi-step forms, email verification, and admin dashboard.",
+      "category": "Full Stack", "required_skills": ["React", "Node.js", "PostgreSQL", "Email"],
+      "budget": 12000, "currency": "INR", "timeline_days": 25, "deadline": "2026-09-30T00:00:00Z",
+      "status": "PENDING_ADMIN_REVIEW", "approaches": 7, "created_at": "2026-08-24T00:00:00Z", "updated_at": "2026-09-05T00:00:00Z",
+      "company": { "id": "c-01", "company_name": "TechWave Pvt Ltd", "contact_name": "Vikram Singh" }
+    },
+    {
+      "id": "p-05", "company_id": "c-02", "title": "Mobile Banking Dashboard",
+      "description": "Design and develop a mobile-first banking dashboard with transaction history, balance overview, and investment tracking.",
+      "category": "Mobile", "required_skills": ["Flutter", "Dart", "Firebase", "REST API"],
+      "budget": 24500, "currency": "INR", "timeline_days": 35, "deadline": "2026-10-15T00:00:00Z",
+      "status": "ASSIGNMENT_PENDING", "approaches": 12, "created_at": "2026-08-07T00:00:00Z", "updated_at": "2026-09-08T00:00:00Z",
+      "company": { "id": "c-02", "company_name": "HTGE Operations", "contact_name": "Rohan Kapoor" }
+    }
+  ],
+
+  "freelancerApproaches": [
+    { "project_id": "p-01", "freelancer": { "id": "f-01", "full_name": "Rahul Sharma", "initials": "RS", "category": "Full Stack", "skill": "React Developer", "rating": 4.8, "completed_projects": 24 } },
+    { "project_id": "p-01", "freelancer": { "id": "f-02", "full_name": "Priya Nair", "initials": "PN", "category": "Design", "skill": "UI/UX Designer", "rating": 4.9, "completed_projects": 18 } },
+    { "project_id": "p-01", "freelancer": { "id": "f-03", "full_name": "Amit Verma", "initials": "AV", "category": "Backend", "skill": "Backend Engineer", "rating": 4.6, "completed_projects": 31 } },
+    { "project_id": "p-01", "freelancer": { "id": "f-04", "full_name": "Sara Thomas", "initials": "ST", "category": "Full Stack", "skill": "Full Stack Developer", "rating": 4.7, "completed_projects": 22 } }
+  ],
+
+  "conversations": [
+    {
+      "id": "conv-01", "project_id": "p-01", "channel": "COMPANY_ADMIN",
+      "project_title": "E-Commerce Platform Redesign",
+      "other_party": { "name": "Rohan Kapoor", "initials": "RK", "type": "COMPANY", "company": "HTGE Operations" },
+      "unread": 2, "last_message": "When can we expect the payment link?", "last_message_at": "2026-09-10T11:15:00Z",
+      "messages": [
+        { "id": "m-01", "sender": "COMPANY", "sender_name": "Rohan Kapoor", "content": "Hi! We are interested in getting this project started.", "timestamp": "2026-09-10T10:00:00Z", "is_read": true },
+        { "id": "m-02", "sender": "ADMIN", "sender_name": "Arjun Mehta", "content": "Great! We have reviewed your project and it looks good. We will assign a freelancer shortly.", "timestamp": "2026-09-10T10:15:00Z", "is_read": true },
+        { "id": "m-03", "sender": "COMPANY", "sender_name": "Rohan Kapoor", "content": "Sure! Also, I wanted to confirm the color palette. Should I proceed with the blue theme or would you prefer something else?", "timestamp": "2026-09-10T11:00:00Z", "is_read": true },
+        { "id": "m-04", "sender": "ADMIN", "sender_name": "Arjun Mehta", "content": "Blue theme looks great. Please proceed with that. When can we expect the full design?", "timestamp": "2026-09-10T11:15:00Z", "is_read": false },
+        { "id": "m-05", "sender": "COMPANY", "sender_name": "Rohan Kapoor", "content": "When can we expect the payment link?", "timestamp": "2026-09-10T11:20:00Z", "is_read": false }
+      ]
+    },
+    {
+      "id": "conv-02", "project_id": "p-01", "channel": "ADMIN_FREELANCER",
+      "project_title": "E-Commerce Platform Redesign",
+      "other_party": { "name": "Rahul Sharma", "initials": "RS", "type": "FREELANCER", "skill": "React Developer" },
+      "unread": 1, "last_message": "Expected by end of tomorrow. I will mark the project as completed once done.", "last_message_at": "2026-09-10T11:20:00Z",
+      "messages": [
+        { "id": "m-10", "sender": "ADMIN", "sender_name": "Arjun Mehta", "content": "Are you interested to contribute in this project?", "timestamp": "2026-09-10T10:30:00Z", "is_read": true },
+        { "id": "m-11", "sender": "FREELANCER", "sender_name": "Rahul Sharma", "content": "Sure! Also, I wanted to confirm the color palette. Should I proceed with the blue theme or would you prefer something else?", "timestamp": "2026-09-10T11:00:00Z", "is_read": true },
+        { "id": "m-12", "sender": "ADMIN", "sender_name": "Arjun Mehta", "content": "Blue theme looks great. Please proceed with that. When can we expect the full design?", "timestamp": "2026-09-10T11:15:00Z", "is_read": true },
+        { "id": "m-13", "sender": "FREELANCER", "sender_name": "Rahul Sharma", "content": "Expected by end of tomorrow (Feb 15). I will mark the project as completed once done and submit for your review.", "timestamp": "2026-09-10T11:20:00Z", "is_read": false }
+      ]
+    }
+  ],
+
+  "payments": [
+    { "id": "pay-01", "project_id": "p-01", "company_id": "c-02", "amount": 150000, "platform_fee": 15000, "freelancer_amount": 135000, "gateway": "RAZORPAY", "gateway_payment_id": "pay_NqX2Mj4sK9pL1A", "status": "SUCCESS", "created_at": "2026-08-15T00:00:00Z", "project": { "title": "E-Commerce Platform Redesign" }, "company": { "company_name": "HTGE Operations" } },
+    { "id": "pay-02", "project_id": "p-03", "company_id": "c-01", "amount": 9500, "platform_fee": 950, "freelancer_amount": 8550, "gateway": "RAZORPAY", "gateway_payment_id": "pay_MpW1Li3rJ8oK0Z", "status": "SUCCESS", "created_at": "2026-06-05T00:00:00Z", "project": { "title": "Analytics Dashboard Build" }, "company": { "company_name": "TechWave Pvt Ltd" } },
+    { "id": "pay-03", "project_id": "p-05", "company_id": "c-02", "amount": 24500, "platform_fee": 2450, "freelancer_amount": 22050, "gateway": "RAZORPAY", "gateway_payment_id": null, "status": "PENDING", "created_at": "2026-09-08T00:00:00Z", "project": { "title": "Mobile Banking Dashboard" }, "company": { "company_name": "HTGE Operations" } }
+  ],
+
+  "payouts": [
+    { "id": "payout-01", "freelancer_id": "f-01", "amount": 28000, "bank_account": "HDFC ****4521", "upi_id": null, "status": "PENDING", "requested_at": "2026-09-09T00:00:00Z", "freelancer": { "full_name": "Rahul Sharma", "email": "rahul@freelancer.in" } },
+    { "id": "payout-02", "freelancer_id": "f-02", "amount": 15500, "bank_account": null, "upi_id": "priya@upi", "status": "COMPLETED", "requested_at": "2026-09-05T00:00:00Z", "processed_at": "2026-09-07T00:00:00Z", "freelancer": { "full_name": "Priya Nair", "email": "priya@design.in" } },
+    { "id": "payout-03", "freelancer_id": "f-03", "amount": 42000, "bank_account": "SBI ****7832", "upi_id": null, "status": "PENDING", "requested_at": "2026-09-10T00:00:00Z", "freelancer": { "full_name": "Amit Verma", "email": "amit@backend.in" } }
+  ],
+
+  "dropRequests": [
+    { "id": "drop-01", "project_id": "p-02", "initiated_by": "c-02", "initiator_role": "COMPANY", "reason": "Our internal team has taken over the payments integration. We no longer require freelancer assistance for this project.", "status": "PENDING", "penalty_applied": 720, "created_at": "2026-09-09T00:00:00Z", "project": { "title": "Payments API Integration", "budget": 7200, "status": "DROP_REQUESTED" } }
+  ],
+
+  "disputes": [
+    { "id": "disp-01", "project_id": "p-02", "reason": "Freelancer delivered incomplete code without unit tests as specified in the project requirements.", "status": "OPEN", "refund_amount": null, "penalty_amount": null, "created_at": "2026-09-08T00:00:00Z", "project": { "title": "Payments API Integration", "status": "DISPUTED" } }
+  ],
+
+  "notifications": [
+    { "id": "n-01", "type": "NEW_PROJECT", "title": "New project submitted", "body": "TechWave Pvt Ltd submitted 'Client Onboarding Portal' for review.", "entity_id": "p-04", "is_read": false, "created_at": "2026-09-10T11:00:00Z" },
+    { "id": "n-02", "type": "DROP_REQUEST", "title": "Drop request received", "body": "HTGE Operations requested to drop 'Payments API Integration'.", "entity_id": "p-02", "is_read": false, "created_at": "2026-09-10T09:00:00Z" },
+    { "id": "n-03", "type": "PAYMENT_SUCCESS", "title": "Payment confirmed", "body": "₹1,50,000 received for 'E-Commerce Platform Redesign'. Platform fee: ₹15,000.", "entity_id": "pay-01", "is_read": true, "created_at": "2026-09-09T14:00:00Z" },
+    { "id": "n-04", "type": "DISPUTE", "title": "Dispute raised", "body": "A dispute has been raised on 'Payments API Integration'. Immediate review required.", "entity_id": "disp-01", "is_read": false, "created_at": "2026-09-09T12:00:00Z" },
+    { "id": "n-05", "type": "NEW_FREELANCER", "title": "New freelancer awaiting KYC", "body": "Kiran Bhat has registered and is awaiting KYC verification and approval.", "entity_id": "f-05", "is_read": true, "created_at": "2026-09-08T10:00:00Z" },
+    { "id": "n-06", "type": "COMPLETION_REQUEST", "title": "Project completion requested", "body": "Rahul Sharma marked 'E-Commerce Platform Redesign' as complete. Review required.", "entity_id": "p-01", "is_read": true, "created_at": "2026-09-07T16:00:00Z" }
+  ],
+
+  "platformSettings": {
+    "platform_commission_percent": 10,
+    "drop_penalty_percent": 10,
+    "company_penalty_share_percent": 10,
+    "platform_penalty_share_percent": 0,
+    "updated_at": "2026-09-01T00:00:00Z"
+  },
+
+  "auditLogs": [
+    { "id": "al-01", "action": "COMPANY_APPROVED", "entity_type": "COMPANY", "entity_id": "c-01", "admin": "Arjun Mehta", "reason": "All documents verified", "ip_address": "103.21.45.12", "created_at": "2026-09-10T11:30:00Z" },
+    { "id": "al-02", "action": "PROJECT_ASSIGNED", "entity_type": "PROJECT", "entity_id": "p-03", "admin": "Arjun Mehta", "reason": "Best skill match", "ip_address": "103.21.45.12", "created_at": "2026-09-10T10:15:00Z" },
+    { "id": "al-03", "action": "PAYOUT_PROCESSED", "entity_type": "PAYOUT", "entity_id": "payout-02", "admin": "Arjun Mehta", "reason": "Approved payout request", "ip_address": "103.21.45.12", "created_at": "2026-09-10T09:00:00Z" },
+    { "id": "al-04", "action": "DISPUTE_RESOLVED", "entity_type": "DISPUTE", "entity_id": "disp-01", "admin": "Arjun Mehta", "reason": "Partial refund processed", "ip_address": "103.21.45.12", "created_at": "2026-09-09T17:45:00Z" },
+    { "id": "al-05", "action": "FREELANCER_APPROVED", "entity_type": "FREELANCER", "entity_id": "f-02", "admin": "Arjun Mehta", "reason": "KYC verified", "ip_address": "103.21.45.12", "created_at": "2026-09-09T16:00:00Z" }
+  ]
+}
