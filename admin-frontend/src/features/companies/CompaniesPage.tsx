@@ -4,6 +4,7 @@ import {
   Search, Download, Plus, X, Eye, CheckCircle, PauseCircle, 
   Ban, ShieldAlert, Copy, ChevronDown, Filter 
 } from 'lucide-react';
+import api from '@/lib/api';
 
 // Mock Data
 type Project = { id: string; title: string; budget: string; status: string; engineer: string };
@@ -16,113 +17,10 @@ type Company = {
   projects: Project[]; auditTrail: AuditLog[];
 };
 
-const initialCompaniesData: Company[] = [
-  {
-    id: "ENT-7491", name: "Apex AI Labs", email: "contact@apexlabs.io", domain: "apexlabs.io", initials: "AL",
-    avatarColor: "bg-gradient-to-br from-indigo-500 to-purple-600", industry: "AI / LLM Infra", status: "Pending Approval",
-    projectsCount: 4, ongoingProjects: 2, dateJoined: "Today, 09:42 AM", rawDate: 20250616,
-    location: "Bengaluru, IN", totalSpent: "₹14,50,000", activeSince: "Jan 2025",
-    projects: [
-      { id: "PRJ-904", title: "Llama-3 Fine-Tuning Pipeline", budget: "₹4,80,000", status: "Ongoing", engineer: "Devon Ward" },
-      { id: "PRJ-882", title: "Agentic RAG Search Engine", budget: "₹5,20,000", status: "Ongoing", engineer: "Sara Lin" },
-      { id: "PRJ-810", title: "CUDA Kernel Optimization", budget: "₹2,50,000", status: "Completed", engineer: "Rohan V." },
-      { id: "PRJ-780", title: "Token Streaming Proxy Gateway", budget: "₹2,00,000", status: "Completed", engineer: "Elena V." }
-    ],
-    auditTrail: [
-      { action: "Submitted Entity Registration", actor: "Company Contact", timestamp: "Today, 09:42 AM", note: "Uploaded Certificate of Incorporation & GST" },
-      { action: "Automated KYB Passed", actor: "System Bot (KYB-Verify)", timestamp: "Today, 09:45 AM", note: "MCA Database match confirmed 100%" },
-      { action: "Awaiting Admin Sign-off", actor: "System", timestamp: "Today, 09:46 AM", note: "Routed to Super Administrator triage queue" }
-    ]
-  },
-  {
-    id: "ENT-6821", name: "QuantMesh Tech", email: "ops@quantmesh.co", domain: "quantmesh.co", initials: "QM",
-    avatarColor: "bg-gradient-to-br from-blue-600 to-cyan-600", industry: "Fintech / Escrow", status: "Pending Approval",
-    projectsCount: 3, ongoingProjects: 1, dateJoined: "Yesterday, 18:15", rawDate: 20250615,
-    location: "Mumbai, IN", totalSpent: "₹8,40,000", activeSince: "Feb 2025",
-    projects: [
-      { id: "PRJ-901", title: "UPI Auto-Split Gateway", budget: "₹4,20,000", status: "Ongoing", engineer: "Arjun Mehta" },
-      { id: "PRJ-844", title: "SEBI Compliance Reporting Job", budget: "₹2,20,000", status: "Completed", engineer: "Kavita Rao" },
-      { id: "PRJ-799", title: "Zero-Knowledge Proof Audit", budget: "₹2,00,000", status: "Completed", engineer: "Vikram Sen" }
-    ],
-    auditTrail: [
-      { action: "Submitted Registration", actor: "Admin Rep", timestamp: "Yesterday, 18:15", note: "GST portal sync pending auth OTP" },
-      { action: "GST Verification Pending", actor: "System KYC", timestamp: "Yesterday, 18:20", note: "Pending secondary director KYC" }
-    ]
-  },
-  {
-    id: "ENT-5510", name: "HyperScale Health", email: "security@hyperscalehealth.org", domain: "hyperscalehealth.org", initials: "HH",
-    avatarColor: "bg-gradient-to-br from-emerald-500 to-teal-700", industry: "HealthTech / HIPAA", status: "Approved",
-    projectsCount: 8, ongoingProjects: 4, dateJoined: "Jun 14, 2025", rawDate: 20250614,
-    location: "Hyderabad, IN", totalSpent: "₹38,90,000", activeSince: "Nov 2024",
-    projects: [
-      { id: "PRJ-906", title: "HL7 FHIR Interoperability Layer", budget: "₹7,50,000", status: "Ongoing", engineer: "Pooja Hegde" },
-      { id: "PRJ-889", title: "ABHA Health ID OAuth Integration", budget: "₹3,40,000", status: "Ongoing", engineer: "Aditya S." },
-      { id: "PRJ-855", title: "HIPAA Compliant AWS Enclave", budget: "₹6,00,000", status: "Ongoing", engineer: "Devon Ward" },
-      { id: "PRJ-820", title: "Realtime Teleconsult Audio WebRTC", budget: "₹4,00,000", status: "Ongoing", engineer: "Maya T." },
-      { id: "PRJ-750", title: "EHR Sync Microservice", budget: "₹8,00,000", status: "Completed", engineer: "Karthik P." }
-    ],
-    auditTrail: [
-      { action: "Enterprise Account Approved", actor: "Elena Vance (Super Admin)", timestamp: "Jun 14, 14:40", note: "Enterprise tier authorized, 15% platform take-rate" },
-      { action: "Escrow Line Established", actor: "Finance Desk", timestamp: "Jun 14, 15:10", note: "₹10,00,000 credit limit backed by Bank Guarantee" }
-    ]
-  },
-  {
-    id: "ENT-4920", name: "CloudVerve Systems", email: "infra@cloudverve.io", domain: "cloudverve.io", initials: "CV",
-    avatarColor: "bg-gradient-to-br from-cyan-600 to-blue-700", industry: "Cloud Ops & DevOps", status: "Approved",
-    projectsCount: 6, ongoingProjects: 2, dateJoined: "Jun 14, 2025", rawDate: 20250614,
-    location: "Gurgaon, IN", totalSpent: "₹21,10,000", activeSince: "Dec 2024",
-    projects: [
-      { id: "PRJ-890", title: "Multi-Region Kubernetes Fleet", budget: "₹5,80,000", status: "Ongoing", engineer: "Siddharth N." },
-      { id: "PRJ-870", title: "Terraform IaC Migration", budget: "₹3,90,000", status: "Ongoing", engineer: "Alex G." },
-      { id: "PRJ-811", title: "eBPF Network Observability", budget: "₹4,20,000", status: "Completed", engineer: "Devon Ward" }
-    ],
-    auditTrail: [
-      { action: "Entity Approved", actor: "Elena Vance", timestamp: "Jun 14, 11:20", note: "Validated via corporate domain & DUNS" }
-    ]
-  },
-  {
-    id: "ENT-4102", name: "Nexus Robotics Pvt Ltd", email: "finance@nexusrobotics.in", domain: "nexusrobotics.in", initials: "NR",
-    avatarColor: "bg-gradient-to-br from-violet-600 to-purple-800", industry: "Industrial IoT", status: "Approved",
-    projectsCount: 11, ongoingProjects: 5, dateJoined: "Jun 10, 2025", rawDate: 20250610,
-    location: "Pune, IN", totalSpent: "₹52,40,000", activeSince: "Aug 2024",
-    projects: [
-      { id: "PRJ-903", title: "ROS2 Telemetry Firmware Update", budget: "₹6,10,000", status: "Ongoing", engineer: "Farhan K." },
-      { id: "PRJ-880", title: "CAN-Bus Edge Ingestion Daemon", budget: "₹4,90,000", status: "Ongoing", engineer: "Tanvi S." }
-    ],
-    auditTrail: [
-      { action: "Tier Upgrade to Enterprise+", actor: "Elena Vance", timestamp: "Jun 10, 10:15", note: "Authorized ₹15,00,000 instant escrow threshold" }
-    ]
-  },
-  {
-    id: "ENT-3891", name: "Solace Fintech Exchange", email: "compliance@solacefin.net", domain: "solacefin.net", initials: "SF",
-    avatarColor: "bg-gradient-to-br from-amber-500 to-orange-600", industry: "Crypto / Web3", status: "Suspended",
-    projectsCount: 2, ongoingProjects: 0, dateJoined: "Jun 02, 2025", rawDate: 20250602,
-    location: "Singapore / IN", totalSpent: "₹6,70,000", activeSince: "Apr 2025",
-    projects: [
-      { id: "PRJ-720", title: "Solidity Smart Contract Audit", budget: "₹3,50,000", status: "Frozen", engineer: "Marcus Chen" },
-      { id: "PRJ-690", title: "SubQuery Indexing Cluster", budget: "₹3,20,000", status: "Settled", engineer: "David W." }
-    ],
-    auditTrail: [
-      { action: "Account Suspended", actor: "Marcus Chen (Risk Officer)", timestamp: "Jun 12, 16:30", note: "Flagged: Escrow hold triggered by milestone code defect dispute" },
-      { action: "Dispute Investigation Opened", actor: "Admin Ops", timestamp: "Jun 12, 16:45", note: "Case #DSP-904 attached" }
-    ]
-  },
-  {
-    id: "ENT-3211", name: "BioSynth Dynamics", email: "founders@biosynth.io", domain: "biosynth.io", initials: "BD",
-    avatarColor: "bg-gradient-to-br from-pink-500 to-rose-600", industry: "BioTech / Genomics", status: "Pending Approval",
-    projectsCount: 1, ongoingProjects: 1, dateJoined: "May 28, 2025", rawDate: 20250528,
-    location: "Bengaluru, IN", totalSpent: "₹3,00,000", activeSince: "May 2025",
-    projects: [
-      { id: "PRJ-814", title: "CRISPR Sequence Visualizer", budget: "₹3,00,000", status: "Ongoing", engineer: "Deepak S." }
-    ],
-    auditTrail: [
-      { action: "New Submission", actor: "Admin Rep", timestamp: "May 28, 14:00", note: "Initial onboarding questionnaire completed" }
-    ]
-  }
-];
+
 
 export default function CompaniesPage() {
-  const [companies, setCompanies] = useState<Company[]>(initialCompaniesData);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'suspended'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortDescending, setSortDescending] = useState(true);
@@ -132,6 +30,26 @@ export default function CompaniesPage() {
   const [pendingSuspendId, setPendingSuspendId] = useState<string | null>(null);
   const [suspendReason, setSuspendReason] = useState('KYB / GST Documentation Discrepancy');
   const [suspendNotes, setSuspendNotes] = useState('');
+
+  useEffect(() => {
+    api.get('/admin/companies').then(res => {
+      if (res.data.success) {
+        const dynamicCompanies = res.data.data.map((c: any) => ({
+          ...c,
+          avatarColor: "bg-gradient-to-br from-indigo-500 to-purple-600",
+          rawDate: new Date(c.dateJoined).getTime(),
+          location: "N/A",
+          totalSpent: "₹0",
+          activeSince: new Date(c.dateJoined).toLocaleDateString(),
+          projectsCount: c.projects?.total || 0,
+          ongoingProjects: c.projects?.ongoing || 0,
+          projects: [],
+          auditTrail: []
+        }));
+        setCompanies(dynamicCompanies);
+      }
+    }).catch(console.error);
+  }, []);
 
   // Handle escape key to close modals
   useEffect(() => {
@@ -268,44 +186,43 @@ export default function CompaniesPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-[#F7F8FA]">
+    <div className="flex-1 flex flex-col min-h-[calc(100vh-64px)] bg-[#F7F8FA] relative text-base">
       
-      {/* Local Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      {/* Header */}
+      <header className="h-20 bg-white border-b border-slate-200 px-8 flex items-center justify-between flex-shrink-0 z-20">
         <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-[22px] font-extrabold text-slate-900 tracking-tight leading-none">Companies</h2>
-            <span className="text-xs font-medium text-slate-500 bg-white border border-slate-200 px-2.5 py-0.5 rounded-full shadow-xs">Showing {filteredCompanies.length} of {totalCounts.all}</span>
-          </div>
-          <p className="text-[13px] text-slate-500 mt-1">Manage enterprise client accounts, compliance status, projects, and administrative enforcement.</p>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Companies</h1>
+          <p className="text-sm text-slate-500 font-medium mt-1">Manage enterprise client accounts, compliance status, and projects.</p>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="relative w-64">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="w-5 h-5 text-slate-400 absolute left-3 top-3" />
             <input 
               type="text" 
+              className="w-80 pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-slate-700 transition" 
+              placeholder="Search company or email..." 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search company or email..." 
-              className="w-full bg-white border border-slate-200 text-xs rounded-lg pl-8 pr-7 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 shadow-xs transition-all"
             />
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold">
-                <X className="w-3.5 h-3.5" />
+              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-xs font-bold">
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
-          <button onClick={exportCSV} className="flex items-center gap-1.5 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 border border-slate-200 px-3 py-2 rounded-lg text-xs font-semibold shadow-xs hover:border-slate-300 transition-all">
-            <Download className="w-3.5 h-3.5 text-slate-500" />
+          <button onClick={exportCSV} className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-semibold shadow-sm transition">
+            <Download className="w-4 h-4 text-slate-500" />
             <span>Export CSV</span>
           </button>
-          <button onClick={() => toast.success("Opening Invitation Modal")} className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shadow-sm shadow-blue-600/30 transition-all">
-            <Plus className="w-3.5 h-3.5" />
+          <button onClick={() => toast.success("Opening Invitation Modal")} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base font-bold shadow-sm transition">
+            <Plus className="w-5 h-5" />
             <span>Invite Company</span>
           </button>
         </div>
-      </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 p-8 flex flex-col overflow-y-auto">
 
       {/* Filter Chips */}
       <div className="flex items-center justify-between border-b border-slate-200/80 pb-3 gap-3 overflow-x-auto mb-5">
@@ -414,6 +331,7 @@ export default function CompaniesPage() {
           </div>
         </div>
       </div>
+      </main>
 
       {/* Slide-Over Backdrop */}
       {isPanelOpen && (

@@ -1,8 +1,9 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
+import { getDashboardStats } from '../../controllers/admin/dashboard.controller';
 
 const router = Router();
 
-// TODO: implement dashboard.routes endpoints
+router.get('/stats', getDashboardStats);
 
 export default router;
 

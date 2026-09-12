@@ -3,6 +3,7 @@ import {
   Search, Eye, Plus, CheckCircle, Mail, MapPin, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '@/lib/api';
 
 // Mock Data
 type Freelancer = {
@@ -17,17 +18,25 @@ type Freelancer = {
   skills: string[];
 };
 
-const initialFreelancers: Freelancer[] = [
-  { id: '#FL-8821', name: 'Alex Chen', title: 'Senior Fullstack Architect', location: 'Remote', email: 'alex@htge.in', status: 'Available', rating: 4.9, completedProjects: 24, skills: ['React', 'Node.js', 'AWS'] },
-  { id: '#FL-9203', name: 'Maya Lin', title: 'Lead Product Designer', location: 'Remote', email: 'maya@design.io', status: 'Busy', rating: 4.8, completedProjects: 31, skills: ['Figma', 'UI/UX', 'Framer'] },
-  { id: '#FL-7319', name: 'Rajesh Sharma', title: 'Cloud Systems Engineer', location: 'Mumbai', email: 'rajesh@cloud.in', status: 'Available', rating: 4.7, completedProjects: 19, skills: ['Kubernetes', 'Docker', 'GCP'] },
-  { id: '#FL-1055', name: 'Sarah Connor', title: 'Backend Security Engineer', location: 'Remote', email: 'sarah@sec.dev', status: 'Available', rating: 5.0, completedProjects: 12, skills: ['Solidity', 'Cryptography', 'Python'] },
-];
-
 export default function FreelancersPage() {
-  const [freelancers, setFreelancers] = useState<Freelancer[]>(initialFreelancers);
+  const [freelancers, setFreelancers] = useState<Freelancer[]>([]);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    fetchFreelancers();
+  }, []);
+
+  const fetchFreelancers = async () => {
+    try {
+      const res = await api.get('/admin/freelancers');
+      if (res.data.success) {
+        setFreelancers(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load freelancers');
+    }
+  };
 
   // New Freelancer Form State
   const [newName, setNewName] = useState('');

@@ -3,6 +3,7 @@ import {
   Search, CheckCircle2, AlertCircle, Download, CreditCard, ShieldCheck, ArrowRightLeft
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '@/lib/api';
 
 type Payment = {
   id: string; 
@@ -15,17 +16,26 @@ type Payment = {
   date: string;
 };
 
-const paymentsData: Payment[] = [
-  { id: '1', paymentId: 'pay_Rzp94820194', projectTitle: 'Zero-Knowledge Rollup Settlement', companyName: 'Apex AI Labs', amount: '₹4,80,000', gateway: 'Razorpay', status: 'In Escrow', date: 'Today, 09:42 AM' },
-  { id: '2', paymentId: 'cf_9940128472', projectTitle: 'PCI-DSS V4 Token Vault', companyName: 'QuantMesh Tech', amount: '₹6,20,000', gateway: 'Cashfree', status: 'In Escrow', date: 'Yesterday, 18:15 PM' },
-  { id: '3', paymentId: 'pay_Rzp88391200', projectTitle: 'Telehealth Portal', companyName: 'HyperScale Health', amount: '₹8,50,000', gateway: 'Razorpay', status: 'Released', date: 'Jun 10, 2025' },
-  { id: '4', paymentId: 'cf_8835019283', projectTitle: 'Telemetry Engine', companyName: 'Nexus Robotics', amount: '₹7,40,000', gateway: 'Cashfree', status: 'Released', date: 'Jun 05, 2025' },
-  { id: '5', paymentId: 'pay_Rzp88200492', projectTitle: 'Kubernetes Operator', companyName: 'CloudVerve', amount: '₹5,50,000', gateway: 'Razorpay', status: 'Refunded', date: 'May 28, 2025' },
-];
-
 export default function PaymentsPage() {
-  const [payments, setPayments] = useState(paymentsData);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [totals, setTotals] = useState({ published: '₹0', ongoing: '₹0', completed: '₹0' });
   const [search, setSearch] = useState('');
+
+  React.useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const fetchPayments = async () => {
+    try {
+      const res = await api.get('/admin/payments');
+      if (res.data.success) {
+        setPayments(res.data.data.transactions);
+        setTotals(res.data.data.totals);
+      }
+    } catch (err) {
+      console.error('Failed to load payments', err);
+    }
+  };
 
   const filtered = payments.filter(p => p.paymentId.toLowerCase().includes(search.toLowerCase()) || p.companyName.toLowerCase().includes(search.toLowerCase()));
 
@@ -70,17 +80,17 @@ export default function PaymentsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm">
             <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Published Projects (Unassigned)</h3>
-            <div className="text-3xl font-black text-slate-900 font-mono">₹11,00,000</div>
+            <div className="text-3xl font-black text-slate-900 font-mono">{totals.published}</div>
             <p className="text-sm font-medium text-slate-500 mt-2">Potential escrow awaiting assignment</p>
           </div>
           <div className="bg-amber-50 border border-amber-200 p-6 rounded-xl shadow-sm">
             <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wider mb-2">Ongoing Revenue (Escrowed)</h3>
-            <div className="text-3xl font-black text-amber-900 font-mono">₹8,50,000</div>
+            <div className="text-3xl font-black text-amber-900 font-mono">{totals.ongoing}</div>
             <p className="text-sm font-medium text-amber-700 mt-2">Locked in platform escrow vault</p>
           </div>
           <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-xl shadow-sm">
             <h3 className="text-sm font-bold text-emerald-700 uppercase tracking-wider mb-2">Completed Revenue (Settled)</h3>
-            <div className="text-3xl font-black text-emerald-900 font-mono">₹12,90,000</div>
+            <div className="text-3xl font-black text-emerald-900 font-mono">{totals.completed}</div>
             <p className="text-sm font-medium text-emerald-700 mt-2">Successfully released to freelancers</p>
           </div>
         </div>

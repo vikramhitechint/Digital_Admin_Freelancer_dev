@@ -1,8 +1,9 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
+import { getCompanies } from '../../controllers/admin/companies.controller';
 
 const router = Router();
 
-// TODO: implement companies.routes endpoints
+router.get('/', getCompanies);
 
 export default router;
 

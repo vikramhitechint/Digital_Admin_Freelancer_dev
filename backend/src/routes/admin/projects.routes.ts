@@ -1,8 +1,7 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
+import { getProjects } from '../../controllers/admin/projects.controller';
 
 const router = Router();
-
-// TODO: implement projects.routes endpoints
+router.get('/', getProjects);
 
 export default router;
-

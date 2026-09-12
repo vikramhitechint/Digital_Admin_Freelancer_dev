@@ -1,8 +1,7 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
+import { getPayments } from '../../controllers/admin/payments.controller';
 
 const router = Router();
-
-// TODO: implement payments.routes endpoints
+router.get('/', getPayments);
 
 export default router;
-

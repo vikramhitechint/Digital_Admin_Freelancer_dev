@@ -47,8 +47,8 @@ export default function ProjectsPage() {
   const fetchData = async () => {
     try {
       const [projRes, freeRes] = await Promise.all([
-        api.get('/projects'),
-        api.get('/users?role=FREELANCER')
+        api.get('/admin/projects'),
+        api.get('/admin/freelancers')
       ]);
       setProjects(projRes.data.map(mapProject));
       setFreelancers(freeRes.data);

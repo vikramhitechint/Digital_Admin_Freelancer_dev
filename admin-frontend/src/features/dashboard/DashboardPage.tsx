@@ -3,45 +3,21 @@ import api from '@/lib/api';
 
 export default function DashboardPage() {
   const [chartMode, setChartMode] = useState<'revenue' | 'earnings' | 'commissions'>('revenue');
-  const [projects, setProjects] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    pendingPayouts: 0,
+    awaitingReview: 0,
+    activeDisputes: 0,
+    pipelineCounts: { pendingReview: 0, ongoing: 0, completed: 0, dropped: 0, total: 0 }
+  });
 
   useEffect(() => {
-    api.get('/projects').then(res => setProjects(res.data)).catch(console.error);
+    api.get('/admin/dashboard/stats').then(res => {
+      if (res.data.success) {
+        setStats(res.data.data);
+      }
+    }).catch(console.error);
   }, []);
-
-  const totalRevenue = projects.reduce((sum, p) => sum + Number(p.budget), 0);
-  const activeProjects = projects.filter(p => p.status === 'ONGOING').length;
-  const pendingProjects = projects.filter(p => p.status === 'PUBLISHED').length;
-
-  const handleApprove = (e: React.MouseEvent<HTMLButtonElement>, name: string) => {
-    const btn = e.currentTarget;
-    const row = btn.closest('tr');
-    if (row) {
-      row.style.transition = 'all 0.3s ease';
-      row.style.backgroundColor = '#ECFDF5';
-      setTimeout(() => {
-        row.style.opacity = '0.5';
-        if (btn.parentElement) {
-          btn.parentElement.innerHTML = '<span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Approved ✓</span>';
-        }
-      }, 600);
-    }
-  };
-
-  const handleReject = (e: React.MouseEvent<HTMLButtonElement>, name: string) => {
-    const btn = e.currentTarget;
-    const row = btn.closest('tr');
-    if (row) {
-      row.style.transition = 'all 0.3s ease';
-      row.style.backgroundColor = '#FEF2F2';
-      setTimeout(() => {
-        row.style.opacity = '0.5';
-        if (btn.parentElement) {
-          btn.parentElement.innerHTML = '<span class="text-[11px] font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">Flagged ✗</span>';
-        }
-      }, 600);
-    }
-  };
 
   const chartPaths = {
     revenue: {
@@ -117,7 +93,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-[26px] font-extrabold text-[#0F172A] tracking-tight font-mono">₹{totalRevenue.toLocaleString()}</div>
+            <div className="text-[26px] font-extrabold text-[#0F172A] tracking-tight font-mono">₹{stats.totalRevenue.toLocaleString()}</div>
             <div className="flex items-center gap-1.5 mt-1.5">
               <span className="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold text-[11px]">
                 +18% this month ↑
@@ -138,7 +114,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-[26px] font-extrabold text-[#0F172A] tracking-tight font-mono">₹3,20,000</div>
+            <div className="text-[26px] font-extrabold text-[#0F172A] tracking-tight font-mono">₹{stats.pendingPayouts.toLocaleString()}</div>
             <div className="flex items-center gap-1.5 mt-1.5">
               <span className="badge-pill bg-amber-50 text-amber-700 border border-amber-200 font-semibold text-[11px]">
                 8 requests
@@ -159,7 +135,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-[26px] font-extrabold text-[#0F172A] tracking-tight font-mono">{pendingProjects} Projects</div>
+            <div className="text-[26px] font-extrabold text-[#0F172A] tracking-tight font-mono">{stats.awaitingReview} Projects</div>
             <div className="flex items-center gap-1.5 mt-1.5">
               <span className="badge-pill bg-rose-50 text-rose-700 border border-rose-200 font-semibold text-[11px]">
                 5 urgent
@@ -180,7 +156,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-[26px] font-extrabold text-[#0F172A] tracking-tight font-mono">3 Open</div>
+            <div className="text-[26px] font-extrabold text-[#0F172A] tracking-tight font-mono">{stats.activeDisputes} Open</div>
             <div className="flex items-center gap-1.5 mt-1.5">
               <span className="badge-pill bg-rose-100 text-rose-800 border border-rose-300 font-semibold text-[11px]">
                 1 critical
@@ -293,7 +269,7 @@ export default function DashboardPage() {
                 <h3 className="text-[15px] font-bold text-slate-900">Project Pipeline</h3>
                 <p className="text-[12px] text-slate-500">Live operational lifecycle breakdown</p>
               </div>
-              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{projects.length} Total</span>
+              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{stats.pipelineCounts.total} Total</span>
             </div>
 
             <div className="relative flex items-center justify-center py-4">
@@ -306,7 +282,7 @@ export default function DashboardPage() {
                 <circle cx="50" cy="50" r="38" fill="transparent" stroke="#EF4444" strokeWidth="12" strokeDasharray="14.3 224.4" strokeDashoffset="-224.2" className="hover:strokeWidth-[14] transition-all cursor-pointer"/>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[24px] font-extrabold text-slate-900 font-mono leading-none">{projects.length}</span>
+                <span className="text-[24px] font-extrabold text-slate-900 font-mono leading-none">{stats.pipelineCounts.total}</span>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Projects</span>
               </div>
             </div>
@@ -314,207 +290,29 @@ export default function DashboardPage() {
             <div className="space-y-2 text-[12px] font-medium pt-1">
               <div className="flex items-center justify-between py-1 px-2 rounded hover:bg-slate-50 transition-colors">
                 <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span><span className="text-slate-700">Pending Brief Review</span></div>
-                <div className="flex items-center gap-2 font-mono"><span className="font-bold text-slate-900">12</span><span className="text-[11px] text-slate-400">(18%)</span></div>
+                <div className="flex items-center gap-2 font-mono"><span className="font-bold text-slate-900">{stats.pipelineCounts.pendingReview}</span></div>
               </div>
               <div className="flex items-center justify-between py-1 px-2 rounded hover:bg-slate-50 transition-colors">
                 <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span><span className="text-slate-700">Assigned / Dispatched</span></div>
-                <div className="flex items-center gap-2 font-mono"><span className="font-bold text-slate-900">18</span><span className="text-[11px] text-slate-400">(26%)</span></div>
+                <div className="flex items-center gap-2 font-mono"><span className="font-bold text-slate-900">0</span></div>
               </div>
               <div className="flex items-center justify-between py-1 px-2 rounded hover:bg-slate-50 transition-colors">
                 <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span><span className="text-slate-700">Ongoing Milestone Work</span></div>
-                <div className="flex items-center gap-2 font-mono"><span className="font-bold text-slate-900">23</span><span className="text-[11px] text-slate-400">(34%)</span></div>
+                <div className="flex items-center gap-2 font-mono"><span className="font-bold text-slate-900">{stats.pipelineCounts.ongoing}</span></div>
               </div>
               <div className="flex items-center justify-between py-1 px-2 rounded hover:bg-slate-50 transition-colors">
                 <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-teal-500"></span><span className="text-slate-700">Completed & Settled</span></div>
-                <div className="flex items-center gap-2 font-mono"><span className="font-bold text-slate-900">11</span><span className="text-[11px] text-slate-400">(16%)</span></div>
+                <div className="flex items-center gap-2 font-mono"><span className="font-bold text-slate-900">{stats.pipelineCounts.completed}</span></div>
               </div>
               <div className="flex items-center justify-between py-1 px-2 rounded hover:bg-slate-50 transition-colors">
                 <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span><span className="text-slate-700">Dropped / Cancelled</span></div>
-                <div className="flex items-center gap-2 font-mono"><span className="font-bold text-slate-900">4</span><span className="text-[11px] text-slate-400">(6%)</span></div>
+                <div className="flex items-center gap-2 font-mono"><span className="font-bold text-slate-900">{stats.pipelineCounts.dropped}</span></div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 3 — ACTION TABLES */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* LEFT COLUMN: Companies Awaiting Approval */}
-        <div className="lg:col-span-7 bg-white rounded-[14px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex flex-col overflow-hidden">
-          <div className="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <h3 className="text-[15px] font-bold text-slate-900">Companies Awaiting Approval</h3>
-              <span className="badge-pill bg-blue-50 text-blue-700 border border-blue-200">4 Pending</span>
-            </div>
-            <a href="/admin/companies" className="text-[12px] font-bold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1">
-              View All Pipeline →
-            </a>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[11px] font-bold uppercase tracking-[0.06em] text-slate-500">
-                  <th className="py-3 px-4">Company</th>
-                  <th className="py-3 px-4">Industry</th>
-                  <th className="py-3 px-4">Applied On</th>
-                  <th className="py-3 px-4 text-center">Compliance</th>
-                  <th className="py-3 px-4 text-right">Quick Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F1F5F9] text-[13px]">
-                {/* Row 1 */}
-                <tr className="h-[52px] hover:bg-[#F8FAFC] transition-colors group">
-                  <td className="py-3 px-4 font-semibold text-slate-900 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center font-bold text-indigo-700 text-[12px]">AL</div>
-                    <div>
-                      <div className="font-bold text-slate-900 leading-snug">Apex AI Labs</div>
-                      <div className="text-[11px] text-slate-400 font-normal">apexlabs.io • Bengaluru</div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-slate-600"><span className="badge-pill bg-slate-100 text-slate-700">AI / LLM Infra</span></td>
-                  <td className="py-3 px-4 text-slate-500 text-[12px] font-mono">Today, 09:42 AM</td>
-                  <td className="py-3 px-4 text-center">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                      KYB Verified
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="inline-flex items-center gap-1.5">
-                      <button onClick={(e) => handleApprove(e, 'Apex AI Labs')} className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 flex items-center justify-center transition-all shadow-2xs">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/></svg>
-                      </button>
-                      <button onClick={(e) => handleReject(e, 'Apex AI Labs')} className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 flex items-center justify-center transition-all shadow-2xs">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                {/* Row 2 */}
-                <tr className="h-[52px] hover:bg-[#F8FAFC] transition-colors group">
-                  <td className="py-3 px-4 font-semibold text-slate-900 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center font-bold text-emerald-700 text-[12px]">QM</div>
-                    <div>
-                      <div className="font-bold text-slate-900 leading-snug">QuantMesh Tech</div>
-                      <div className="text-[11px] text-slate-400 font-normal">quantmesh.co • Mumbai</div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-slate-600"><span className="badge-pill bg-slate-100 text-slate-700">Fintech / Escrow</span></td>
-                  <td className="py-3 px-4 text-slate-500 text-[12px] font-mono">Yesterday, 18:15</td>
-                  <td className="py-3 px-4 text-center">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                      GST Pending
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="inline-flex items-center gap-1.5">
-                      <button onClick={(e) => handleApprove(e, 'QuantMesh Tech')} className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 flex items-center justify-center transition-all shadow-2xs">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/></svg>
-                      </button>
-                      <button onClick={(e) => handleReject(e, 'QuantMesh Tech')} className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 flex items-center justify-center transition-all shadow-2xs">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                {/* Row 3 */}
-                <tr className="h-[52px] hover:bg-[#F8FAFC] transition-colors group">
-                  <td className="py-3 px-4 font-semibold text-slate-900 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center font-bold text-rose-700 text-[12px]">HH</div>
-                    <div>
-                      <div className="font-bold text-slate-900 leading-snug">HyperScale Health</div>
-                      <div className="text-[11px] text-slate-400 font-normal">hyperscalehealth.org • Hyderabad</div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-slate-600"><span className="badge-pill bg-slate-100 text-slate-700">HealthTech / HIPAA</span></td>
-                  <td className="py-3 px-4 text-slate-500 text-[12px] font-mono">Jun 14, 14:20</td>
-                  <td className="py-3 px-4 text-center">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                      KYB Verified
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="inline-flex items-center gap-1.5">
-                      <button onClick={(e) => handleApprove(e, 'HyperScale Health')} className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 flex items-center justify-center transition-all shadow-2xs">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/></svg>
-                      </button>
-                      <button onClick={(e) => handleReject(e, 'HyperScale Health')} className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 flex items-center justify-center transition-all shadow-2xs">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: Urgent Items */}
-        <div className="lg:col-span-5 bg-white rounded-[14px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
-                <h3 className="text-[15px] font-bold text-slate-900">Urgent Items</h3>
-              </div>
-              <span className="text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">Requires Admin Intervention</span>
-            </div>
-            <div className="divide-y divide-slate-100 mt-2">
-              <div className="py-3 flex items-start gap-3 hover:bg-slate-50/70 p-2 rounded-lg transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex-shrink-0 flex items-center justify-center text-amber-600 mt-0.5">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-slate-900 leading-snug">Project <span className="font-bold text-blue-600">"CRM Rewrite"</span> needs assignment</div>
-                  <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-1">
-                    <span className="font-medium text-slate-500">3 qualified matches ready</span><span>•</span><span className="font-mono text-amber-600 font-semibold">18m ago</span>
-                  </div>
-                </div>
-                <button className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-[11px] font-bold transition-all shadow-xs flex-shrink-0">Dispatch</button>
-              </div>
-              <div className="py-3 flex items-start gap-3 hover:bg-slate-50/70 p-2 rounded-lg transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 flex-shrink-0 flex items-center justify-center text-rose-600 mt-0.5">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-slate-900 leading-snug">Drop request on <span className="font-bold text-rose-600">"API Integration"</span></div>
-                  <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-1">
-                    <span className="font-medium text-slate-500">Freelancer initiated cancellation</span><span>•</span><span className="font-mono text-rose-600 font-semibold">42m ago</span>
-                  </div>
-                </div>
-                <button className="px-2.5 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-md text-[11px] font-bold transition-all flex-shrink-0">Review Hold</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4 — RECENT ACTIVITY FEED */}
-      <section className="bg-white rounded-[14px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-          <div>
-            <h3 className="text-[15px] font-bold text-slate-900">Recent Operational Activity</h3>
-            <p className="text-[12px] text-slate-500">Immutable ledger events executed by administrative controllers</p>
-          </div>
-        </div>
-        <div className="relative pl-6 space-y-6 pt-4 before:absolute before:left-[11px] before:top-6 before:bottom-6 before:w-[2px] before:bg-slate-200">
-          <div className="relative flex items-start justify-between gap-4 group">
-            <span className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-emerald-500 ring-4 ring-white flex items-center justify-center text-white">
-              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/></svg>
-            </span>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] font-bold text-slate-900">Elena Vance</span>
-                <span className="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200">Dispatched</span>
-                <span className="text-[12px] text-slate-600">assigned freelance architect <strong className="text-slate-900 font-semibold">Devon Ward</strong></span>
-              </div>
-            </div>
-            <div className="text-[12px] font-mono text-slate-600 font-semibold flex-shrink-0">4 mins ago</div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

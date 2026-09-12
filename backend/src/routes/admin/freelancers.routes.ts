@@ -1,8 +1,7 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
+import { getFreelancers } from '../../controllers/admin/freelancers.controller';
 
 const router = Router();
-
-// TODO: implement freelancers.routes endpoints
+router.get('/', getFreelancers);
 
 export default router;
-
