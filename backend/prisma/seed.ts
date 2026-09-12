@@ -1,4 +1,5 @@
 import { PrismaClient, ProjectStatus, Role } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -67,6 +68,35 @@ async function main() {
   });
 
   // 2. Create Mock Clients
+  const hashedPassword = await bcrypt.hash('password123', 10);
+
+  const admin = await prisma.user.upsert({
+    where: { email: 'adminhtge@gmail.org' },
+    update: { password: hashedPassword },
+    create: {
+      email: 'adminhtge@gmail.org',
+      password: hashedPassword,
+      fullName: 'Super Admin',
+      role: Role.ADMIN,
+    },
+  });
+
+  const mainClient = await prisma.user.upsert({
+    where: { email: 'admin@htge.in' },
+    update: { password: hashedPassword },
+    create: {
+      email: 'admin@htge.in',
+      password: hashedPassword,
+      fullName: 'HTGE Main Client',
+      role: Role.CLIENT,
+      profile: {
+        create: {
+          companyName: 'HTGE',
+        }
+      }
+    },
+  });
+
   const c1 = await prisma.user.upsert({
     where: { email: 'client1@apex.io' },
     update: {},
