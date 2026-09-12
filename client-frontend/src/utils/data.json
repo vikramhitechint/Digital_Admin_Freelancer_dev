@@ -1,0 +1,691 @@
+{
+  
+  "auth": {
+    "email": "admin@htge.in",
+    "password": "password123"
+  },
+  "user": {
+    "name": "HTGE Admin",
+    "email": "admin@htge.in",
+    "role": "Administrator",
+    "avatarInitials": "H",
+    "department": "Operations & Finance"
+  },
+  "companyProfile": {
+    "companyName": "HTGE Technologies Pvt. Ltd.",
+    "email": "admin@htge.in",
+    "phone": "+91 98765 43210",
+    "taxId": "33AABCT1234F1Z5",
+    "address": "No. 45, 2nd Avenue, Anna Nagar",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "pincode": "600040",
+    "country": "India",
+    "website": "https://htge.in"
+  },
+  "bankDetails": {
+    "bankName": "HDFC Bank",
+    "accountNumber": "50200045678901",
+    "ifscCode": "HDFC0001234",
+    "branchName": "Anna Nagar, Chennai",
+    "accountType": "Current Account",
+    "micrCode": "600240012",
+    "beneficiaryName": "HTGE Technologies Pvt. Ltd."
+  },
+  "dashboardStats": {
+    "totalPublish": 6,
+    "totalPublishSubtext": "18 projects total",
+    "totalOngoing": 7,
+    "totalOngoingSubtext": "39% of total",
+    "totalComplete": 5,
+    "totalCompleteSubtext": "Across all teams",
+    "projectWorth": "₹2,34,550",
+    "projectWorthSubtext": "Combined value",
+    "distribution": {
+      "total": 18,
+      "publish": 6,
+      "ongoing": 7,
+      "complete": 5
+    },
+    "skills": [
+      { "name": "Frontend", "count": 6, "percentage": 85, "color": "#2563EB" },
+      { "name": "Backend", "count": 5, "percentage": 70, "color": "#0284C7" },
+      { "name": "Design", "count": 4, "percentage": 55, "color": "#0D9488" },
+      { "name": "Data", "count": 3, "percentage": 40, "color": "#6366F1" },
+      { "name": "Mobile", "count": 2, "percentage": 28, "color": "#94A3B8" }
+    ],
+    "recentFreelancers": [
+      { "id": 1, "name": "Lena Vogt", "role": "Frontend", "projects": "3 projects", "amount": "₹3.2L", "avatar": "LV" },
+      { "id": 2, "name": "Sofia Marchetti", "role": "Backend", "projects": "2 projects", "amount": "₹2.4L", "avatar": "SM" },
+      { "id": 3, "name": "Dario Kline", "role": "Design", "projects": "2 projects", "amount": "₹1.8L", "avatar": "DK" },
+      { "id": 4, "name": "Priya Nair", "role": "Data", "projects": "1 project", "amount": "₹0.9L", "avatar": "PN" },
+      { "id": 5, "name": "Arjun Mehta", "role": "Mobile", "projects": "1 project", "amount": "₹0.7L", "avatar": "AM" }
+    ]
+  },
+  "publishedProjects": [
+    {
+      "id": "01",
+      "name": "E-Commerce Platform Redesign",
+      "amount": "₹1,50,000",
+      "approaches": 8,
+      "postedDate": "02 Aug 2026",
+      "completionDate": "15 Feb 2025",
+      "status": "Active",
+      "description": "We are looking for an experienced freelancer to redesign our e-commerce platform. The project includes UI/UX overhaul, responsive design implementation, and integration with existing backend systems. Must have 5+ years of experience in React and responsive design.",
+      "skills": ["React", "Node.js", "MongoDB", "Figma", "Responsive Design"],
+      "sampleLinks": [
+        { "label": "Figma Design System", "url": "https://www.figma.com/@htge-ecommerce-ui" },
+        { "label": "Live Demo Prototype", "url": "https://preview.htge.in/ecommerce-demo" },
+        { "label": "API Specification Docs", "url": "https://docs.htge.in/api/v2" }
+      ],
+      "sampleImages": [
+        { "name": "dashboard_wireframe.png", "size": "1.4 MB", "type": "image" },
+        { "name": "checkout_user_flow.png", "size": "2.1 MB", "type": "image" },
+        { "name": "api_endpoints_doc.pdf", "size": "640 KB", "type": "doc" }
+      ],
+      "freelancerApproaches": [
+        {
+          "id": 1,
+          "name": "Rahul Sharma",
+          "subtitle": "React Developer",
+          "role": "Frontend",
+          "rating": "4.8",
+          "completed": 24,
+          "bidAmount": "₹1,20,000",
+          "avatarBg": "bg-blue-100 text-blue-700",
+          "avatarInitials": "RS",
+          "email": "rahul.sharma@example.com",
+          "experience": "5+ years",
+          "bio": "Experienced frontend engineer specialized in building pixel-perfect, responsive applications with React and Tailwind CSS."
+        },
+        {
+          "id": 2,
+          "name": "Priya Nair",
+          "subtitle": "UI/UX Designer",
+          "role": "Designer",
+          "rating": "4.9",
+          "completed": 18,
+          "bidAmount": "₹95,000",
+          "avatarBg": "bg-teal-100 text-teal-700",
+          "avatarInitials": "PN",
+          "email": "priya.nair@example.com",
+          "experience": "4 years",
+          "bio": "Product designer focusing on human-centered design, Figma component systems, and design tokens."
+        },
+        {
+          "id": 3,
+          "name": "Amit Verma",
+          "subtitle": "Backend Engineer",
+          "role": "Backend",
+          "rating": "4.6",
+          "completed": 31,
+          "bidAmount": "₹1,40,000",
+          "avatarBg": "bg-indigo-100 text-indigo-700",
+          "avatarInitials": "AV",
+          "email": "amit.verma@example.com",
+          "experience": "5 years",
+          "bio": "Specialized in microservice architectures, high concurrency Node.js systems, and PostgreSQL."
+        },
+        {
+          "id": 4,
+          "name": "Sara Thomas",
+          "subtitle": "Full Stack Developer",
+          "role": "Full Stack",
+          "rating": "4.7",
+          "completed": 22,
+          "bidAmount": "₹1,25,000",
+          "avatarBg": "bg-sky-100 text-sky-700",
+          "avatarInitials": "ST",
+          "email": "sara.thomas@example.com",
+          "experience": "6 years",
+          "bio": "Full stack engineer delivering end-to-end user workflows, API integration, and clean UX."
+        },
+        {
+          "id": 5,
+          "name": "Vikram Malhotra",
+          "subtitle": "Cloud & DevOps Specialist",
+          "role": "DevOps",
+          "rating": "4.9",
+          "completed": 38,
+          "bidAmount": "₹1,30,000",
+          "avatarBg": "bg-purple-100 text-purple-700",
+          "avatarInitials": "VM",
+          "email": "vikram.m@example.com",
+          "experience": "7 years",
+          "bio": "AWS & GCP certified architect for scalable multi-region web infrastructure."
+        },
+        {
+          "id": 6,
+          "name": "Neha Kapoor",
+          "subtitle": "Lead Product Designer",
+          "role": "Designer",
+          "rating": "5.0",
+          "completed": 45,
+          "bidAmount": "₹1,15,000",
+          "avatarBg": "bg-pink-100 text-pink-700",
+          "avatarInitials": "NK",
+          "email": "neha.k@example.com",
+          "experience": "5+ years",
+          "bio": "Award winning product designer with extensive e-commerce mobile and web experience."
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "name": "Payments API integration",
+      "amount": "₹7,200",
+      "approaches": 4,
+      "postedDate": "28 Jul 2026",
+      "completionDate": "15 Aug 2026",
+      "status": "Active",
+      "description": "Integration of Razorpay and Stripe payment gateways with webhook listeners, refund automation, and instant reconciliation.",
+      "skills": ["Node.js", "Express", "Stripe API", "Razorpay", "PostgreSQL"],
+      "sampleLinks": [
+        { "label": "Payment Sequence Docs", "url": "https://stripe.com/docs/api" }
+      ],
+      "sampleImages": [
+        { "name": "payment_architecture.png", "size": "950 KB", "type": "image" },
+        { "name": "security_checklist.pdf", "size": "320 KB", "type": "doc" }
+      ],
+      "freelancerApproaches": [
+        {
+          "id": 1,
+          "name": "Amit Verma",
+          "subtitle": "Backend Engineer",
+          "role": "Backend",
+          "rating": "4.6",
+          "completed": 31,
+          "bidAmount": "₹6,800",
+          "avatarBg": "bg-indigo-100 text-indigo-700",
+          "avatarInitials": "AV",
+          "email": "amit.verma@example.com",
+          "experience": "5 years",
+          "bio": "Built multiple fintech payment pipes with high transaction concurrency and security."
+        },
+        {
+          "id": 2,
+          "name": "Sara Thomas",
+          "subtitle": "Full Stack Developer",
+          "role": "Full Stack",
+          "rating": "4.7",
+          "completed": 22,
+          "bidAmount": "₹7,000",
+          "avatarBg": "bg-sky-100 text-sky-700",
+          "avatarInitials": "ST",
+          "email": "sara.thomas@example.com",
+          "experience": "6 years",
+          "bio": "Payment flow design & secure webhook infrastructure."
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "name": "Analytics dashboard build",
+      "amount": "₹9,500",
+      "approaches": 3,
+      "postedDate": "14 May 2026",
+      "completionDate": "30 May 2026",
+      "status": "Active",
+      "description": "Custom Chart.js and Tailwind based operations dashboard with multi-channel filtering, revenue aggregations, and export to CSV.",
+      "skills": ["React", "Chart.js", "Tailwind CSS", "Recharts"],
+      "sampleLinks": [
+        { "label": "Dashboard Wireframe", "url": "https://figma.com/@htge-analytics" }
+      ],
+      "sampleImages": [
+        { "name": "charts_spec.png", "size": "1.1 MB", "type": "image" }
+      ],
+      "freelancerApproaches": [
+        {
+          "id": 1,
+          "name": "Rahul Sharma",
+          "subtitle": "React Developer",
+          "role": "Frontend",
+          "rating": "4.8",
+          "completed": 24,
+          "bidAmount": "₹9,000",
+          "avatarBg": "bg-blue-100 text-blue-700",
+          "avatarInitials": "RS",
+          "email": "rahul.sharma@example.com",
+          "experience": "5 years",
+          "bio": "Specialized in data visualizations and high performance interactive dashboards."
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "name": "Client onboarding portal",
+      "amount": "₹12,000",
+      "approaches": 7,
+      "postedDate": "24 Aug 2026",
+      "completionDate": "10 Sep 2026",
+      "status": "Active",
+      "description": "Multi-step client KYC onboarding flow with document verification, bank validation, and instant welcome email dispatch.",
+      "skills": ["React", "TypeScript", "Tailwind CSS", "Zod"],
+      "sampleLinks": [
+        { "label": "KYC Form Specs", "url": "https://docs.htge.in/kyc" }
+      ],
+      "sampleImages": [
+        { "name": "form_steps.png", "size": "780 KB", "type": "image" }
+      ],
+      "freelancerApproaches": [
+        {
+          "id": 1,
+          "name": "Priya Nair",
+          "subtitle": "UI/UX Designer",
+          "role": "Designer",
+          "rating": "4.9",
+          "completed": 18,
+          "bidAmount": "₹11,500",
+          "avatarBg": "bg-teal-100 text-teal-700",
+          "avatarInitials": "PN",
+          "email": "priya.nair@example.com",
+          "experience": "4 years",
+          "bio": "Product designer focusing on friction-free forms."
+        }
+      ]
+    },
+    {
+      "id": "05",
+      "name": "Mobile banking dashboard",
+      "amount": "₹24,500",
+      "approaches": 12,
+      "postedDate": "07 Aug 2026",
+      "completionDate": "25 Aug 2026",
+      "status": "Active",
+      "description": "Cross-platform mobile application interface for tracking balance, real-time push notifications, and biometric authentication.",
+      "skills": ["React Native", "Expo", "Redux Toolkit", "Tailwind"],
+      "sampleLinks": [
+        { "label": "Mobile Prototype", "url": "https://expo.dev/@htge/banking" }
+      ],
+      "sampleImages": [
+        { "name": "mobile_screens.png", "size": "3.4 MB", "type": "image" }
+      ],
+      "freelancerApproaches": [
+        {
+          "id": 1,
+          "name": "Arjun Mehta",
+          "subtitle": "Mobile Specialist",
+          "role": "Mobile",
+          "rating": "4.9",
+          "completed": 28,
+          "bidAmount": "₹23,000",
+          "avatarBg": "bg-emerald-100 text-emerald-700",
+          "avatarInitials": "AM",
+          "email": "arjun.mehta@example.com",
+          "experience": "6 years",
+          "bio": "React Native mobile engineer with 15+ published apps on App Store and Play Store."
+        }
+      ]
+    }
+  ],
+  "ongoingProjects": [
+    {
+      "id": "01",
+      "name": "ewfewds",
+      "amount": "₹4,35,435",
+      "involved": "2 freelancers",
+      "status": "Active",
+      "postedDate": "02 Sep 2026",
+      "completionDate": "2026-09-09",
+      "description": "fsdfds",
+      "skills": ["React", "Tailwind CSS"],
+      "sampleLinks": [
+        { "label": "Figma Prototype", "url": "https://figma.com/@htge-project" },
+        { "label": "Specification Document", "url": "https://docs.htge.in" }
+      ],
+      "sampleImages": [
+        { "name": "dashboard_wireframe.png", "size": "1.4 MB", "type": "image" },
+        { "name": "project_scope_spec.pdf", "size": "620 KB", "type": "doc" }
+      ],
+      "freelancers": [
+        {
+          "id": 1,
+          "name": "Rahul Sharma",
+          "subtitle": "React Developer",
+          "role": "Frontend",
+          "totalContribution": 7,
+          "progress": 65,
+          "avatarBg": "bg-blue-100 text-blue-700",
+          "avatarInitials": "RS",
+          "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces",
+          "experience": "5+ years",
+          "completed": 24,
+          "bio": "Experienced frontend engineer specialized in building pixel-perfect, responsive applications with React and Tailwind CSS."
+        },
+        {
+          "id": 2,
+          "name": "Priya Nair",
+          "subtitle": "UI/UX Designer",
+          "role": "Designer",
+          "totalContribution": 12,
+          "progress": 40,
+          "avatarBg": "bg-teal-100 text-teal-700",
+          "avatarInitials": "PN",
+          "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=faces",
+          "experience": "4 years",
+          "completed": 18,
+          "bio": "Product designer focusing on human-centered design, Figma component systems, and design tokens."
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "name": "Payments API integration",
+      "amount": "₹7,200",
+      "involved": "3 freelancers",
+      "status": "Active",
+      "postedDate": "28 Jul 2026",
+      "completionDate": "15 Aug 2026",
+      "description": "Integration of Razorpay and Stripe payment gateways with webhook listeners, refund automation, and instant reconciliation.",
+      "skills": ["Node.js", "Express", "Stripe API", "Razorpay"],
+      "sampleLinks": [
+        { "label": "Payment Sequence Docs", "url": "https://stripe.com/docs/api" }
+      ],
+      "sampleImages": [
+        { "name": "payment_architecture.png", "size": "950 KB", "type": "image" }
+      ],
+      "freelancers": [
+        {
+          "id": 1,
+          "name": "Amit Verma",
+          "subtitle": "Backend Engineer",
+          "role": "Backend",
+          "totalContribution": 8,
+          "progress": 70,
+          "avatarBg": "bg-indigo-100 text-indigo-700",
+          "avatarInitials": "AV",
+          "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces",
+          "experience": "5 years",
+          "completed": 31,
+          "bio": "Built multiple fintech payment pipes with high transaction concurrency and security."
+        },
+        {
+          "id": 2,
+          "name": "Sara Thomas",
+          "subtitle": "Full Stack Developer",
+          "role": "Full Stack",
+          "totalContribution": 5,
+          "progress": 55,
+          "avatarBg": "bg-sky-100 text-sky-700",
+          "avatarInitials": "ST",
+          "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=faces",
+          "experience": "6 years",
+          "completed": 22,
+          "bio": "Payment flow design & secure webhook infrastructure."
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "name": "Mobile banking dashboard",
+      "amount": "₹24,500",
+      "involved": "4 freelancers",
+      "status": "Active",
+      "postedDate": "07 Aug 2026",
+      "completionDate": "25 Aug 2026",
+      "description": "Cross-platform mobile banking user dashboard with push notifications and biometric authentication.",
+      "skills": ["React Native", "Expo", "Redux Toolkit"],
+      "sampleLinks": [
+        { "label": "Mobile Prototype", "url": "https://expo.dev/@htge/banking" }
+      ],
+      "sampleImages": [
+        { "name": "mobile_screens.png", "size": "3.4 MB", "type": "image" }
+      ],
+      "freelancers": [
+        {
+          "id": 1,
+          "name": "Arjun Mehta",
+          "subtitle": "Mobile Specialist",
+          "role": "Mobile",
+          "totalContribution": 14,
+          "progress": 80,
+          "avatarBg": "bg-emerald-100 text-emerald-700",
+          "avatarInitials": "AM",
+          "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces",
+          "experience": "6 years",
+          "completed": 28,
+          "bio": "React Native engineer with 15+ published apps on App Store and Play Store."
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "name": "Inventory sync API",
+      "amount": "₹8,850",
+      "involved": "2 freelancers",
+      "status": "Active",
+      "postedDate": "10 Aug 2026",
+      "completionDate": "28 Aug 2026",
+      "description": "Automated synchronization pipeline between warehouse inventory and frontend catalog.",
+      "skills": ["Node.js", "Redis", "PostgreSQL"],
+      "sampleLinks": [],
+      "sampleImages": [],
+      "freelancers": [
+        {
+          "id": 1,
+          "name": "Rahul Sharma",
+          "subtitle": "React Developer",
+          "role": "Frontend",
+          "totalContribution": 4,
+          "progress": 35,
+          "avatarBg": "bg-blue-100 text-blue-700",
+          "avatarInitials": "RS",
+          "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces",
+          "experience": "5+ years",
+          "completed": 24,
+          "bio": "Specialized in responsive UI engineering."
+        }
+      ]
+    },
+    {
+      "id": "05",
+      "name": "Payment gateway integration",
+      "amount": "₹17,500",
+      "involved": "2 freelancers",
+      "status": "Active",
+      "postedDate": "12 Aug 2026",
+      "completionDate": "02 Sep 2026",
+      "description": "Multi-vendor settlement module with split-payment capabilities.",
+      "skills": ["Node.js", "Stripe Connect"],
+      "sampleLinks": [],
+      "sampleImages": [],
+      "freelancers": []
+    },
+    {
+      "id": "06",
+      "name": "Vendor marketplace MVP",
+      "amount": "₹28,900",
+      "involved": "5 freelancers",
+      "status": "Active",
+      "postedDate": "15 Aug 2026",
+      "completionDate": "10 Sep 2026",
+      "description": "Multi-tenant marketplace MVP for vendor listings, onboarding, and catalog approvals.",
+      "skills": ["React", "Node.js", "Tailwind CSS"],
+      "sampleLinks": [],
+      "sampleImages": [],
+      "freelancers": []
+    },
+    {
+      "id": "07",
+      "name": "Customer support chatbot",
+      "amount": "₹19,600",
+      "involved": "3 freelancers",
+      "status": "Active",
+      "postedDate": "18 Aug 2026",
+      "completionDate": "12 Sep 2026",
+      "description": "AI-assisted chatbot widget integration with human escalation triggers.",
+      "skills": ["React", "WebSockets", "OpenAI API"],
+      "sampleLinks": [],
+      "sampleImages": [],
+      "freelancers": []
+    },
+    {
+      "id": "08",
+      "name": "Warehouse mobile scanner app",
+      "amount": "₹16,700",
+      "involved": "3 freelancers",
+      "status": "Active",
+      "postedDate": "20 Aug 2026",
+      "completionDate": "15 Sep 2026",
+      "description": "Barcode & QR scanning application with offline queuing support.",
+      "skills": ["React Native", "Expo"],
+      "sampleLinks": [],
+      "sampleImages": [],
+      "freelancers": []
+    }
+  ],"completedProjects": [
+  {
+    "id": "01",
+    "name": "Analytics dashboard build",
+    "amount": "₹9,500",
+    "duration": "48 days",
+    "completionDate": "01 Jul 2026",
+    "rating": 5,
+    "status": "Completed",
+    "completedOn": "01 Jul 2026",
+    "freelancer": {
+      "name": "Rahul Sharma",
+      "avatarInitials": "RS",
+      "avatarBg": "bg-blue-100 text-blue-700"
+    },
+    "bidAmount": "₹9,500",
+    "freelancerReceived": "₹8,550",
+    "paymentNote": "Payment was released to freelancer on 02 Jul 2026. HTGE platform fee retained.",
+    "deliverables": [
+      { "name": "Dashboard_Final.fig", "size": "2.5 MB", "type": "Figma", "fileType": "file" },
+      { "name": "Design_Specs_&_Component_Library.pdf", "size": "1.2 MB", "type": "PDF", "fileType": "file" },
+      { "name": "Drive Link", "url": "https://figma.com/design/abc123", "urlLabel": "https://figma.com/design/abc123", "fileType": "link" }
+    ],
+    "timeline": [
+      { "label": "Project Published", "date": "14 May 2026", "time": "10:00 AM", "note": "", "color": "blue" },
+      { "label": "Work Started", "date": "15 May 2026", "time": "2:30 PM", "note": "Payment processed", "color": "blue" },
+      { "label": "Project Marked In Progress", "date": "16 May 2026", "time": "3:00 PM", "note": "", "color": "blue" },
+      { "label": "Completion Submitted", "date": "01 Jul 2026", "time": "5:45 PM", "note": "", "color": "blue" },
+      { "label": "Approved & Completed", "date": "01 Jul 2026", "time": "7:15 PM", "note": "Payment released", "color": "green" }
+    ]
+  },
+  {
+    "id": "02",
+    "name": "CRM data migration",
+    "amount": "₹6,400",
+    "duration": "26 days",
+    "completionDate": "05 Apr 2026",
+    "rating": 4,
+    "status": "Completed",
+    "completedOn": "05 Apr 2026",
+    "freelancer": {
+      "name": "Amit Verma",
+      "avatarInitials": "AV",
+      "avatarBg": "bg-indigo-100 text-indigo-700"
+    },
+    "bidAmount": "₹6,400",
+    "freelancerReceived": "₹5,760",
+    "paymentNote": "Payment was released to freelancer on 06 Apr 2026. HTGE platform fee retained.",
+    "deliverables": [
+      { "name": "CRM_Migration_Report.pdf", "size": "980 KB", "type": "PDF", "fileType": "file" },
+      { "name": "Drive Link", "url": "https://drive.google.com/crm-migration", "urlLabel": "https://drive.google.com/crm-migration", "fileType": "link" }
+    ],
+    "timeline": [
+      { "label": "Project Published", "date": "10 Mar 2026", "time": "09:00 AM", "note": "", "color": "blue" },
+      { "label": "Work Started", "date": "11 Mar 2026", "time": "11:00 AM", "note": "Payment processed", "color": "blue" },
+      { "label": "Project Marked In Progress", "date": "12 Mar 2026", "time": "2:00 PM", "note": "", "color": "blue" },
+      { "label": "Completion Submitted", "date": "05 Apr 2026", "time": "4:00 PM", "note": "", "color": "blue" },
+      { "label": "Approved & Completed", "date": "05 Apr 2026", "time": "6:30 PM", "note": "Payment released", "color": "green" }
+    ]
+  },
+  {
+    "id": "03",
+    "name": "Design system build",
+    "amount": "₹15,800",
+    "duration": "95 days",
+    "completionDate": "20 May 2026",
+    "rating": 5,
+    "status": "Completed",
+    "completedOn": "20 May 2026",
+    "freelancer": {
+      "name": "Neha Kapoor",
+      "avatarInitials": "NK",
+      "avatarBg": "bg-pink-100 text-pink-700"
+    },
+    "bidAmount": "₹15,800",
+    "freelancerReceived": "₹14,220",
+    "paymentNote": "Payment was released to freelancer on 21 May 2026. HTGE platform fee retained.",
+    "deliverables": [
+      { "name": "DesignSystem_Tokens.fig", "size": "4.2 MB", "type": "Figma", "fileType": "file" },
+      { "name": "Component_Documentation.pdf", "size": "2.8 MB", "type": "PDF", "fileType": "file" },
+      { "name": "Drive Link", "url": "https://figma.com/design/ds-tokens", "urlLabel": "https://figma.com/design/ds-tokens", "fileType": "link" }
+    ],
+    "timeline": [
+      { "label": "Project Published", "date": "15 Feb 2026", "time": "10:00 AM", "note": "", "color": "blue" },
+      { "label": "Work Started", "date": "16 Feb 2026", "time": "1:00 PM", "note": "Payment processed", "color": "blue" },
+      { "label": "Project Marked In Progress", "date": "17 Feb 2026", "time": "3:00 PM", "note": "", "color": "blue" },
+      { "label": "Completion Submitted", "date": "20 May 2026", "time": "5:00 PM", "note": "", "color": "blue" },
+      { "label": "Approved & Completed", "date": "20 May 2026", "time": "7:00 PM", "note": "Payment released", "color": "green" }
+    ]
+  },
+  {
+    "id": "04",
+    "name": "Email template suite",
+    "amount": "₹3,200",
+    "duration": "19 days",
+    "completionDate": "10 Feb 2026",
+    "rating": 4,
+    "status": "Completed",
+    "completedOn": "10 Feb 2026",
+    "freelancer": {
+      "name": "Priya Nair",
+      "avatarInitials": "PN",
+      "avatarBg": "bg-teal-100 text-teal-700"
+    },
+    "bidAmount": "₹3,200",
+    "freelancerReceived": "₹2,880",
+    "paymentNote": "Payment was released to freelancer on 11 Feb 2026. HTGE platform fee retained.",
+    "deliverables": [
+      { "name": "Email_Templates.zip", "size": "1.1 MB", "type": "ZIP", "fileType": "file" },
+      { "name": "Drive Link", "url": "https://drive.google.com/email-suite", "urlLabel": "https://drive.google.com/email-suite", "fileType": "link" }
+    ],
+    "timeline": [
+      { "label": "Project Published", "date": "22 Jan 2026", "time": "09:30 AM", "note": "", "color": "blue" },
+      { "label": "Work Started", "date": "23 Jan 2026", "time": "10:00 AM", "note": "Payment processed", "color": "blue" },
+      { "label": "Project Marked In Progress", "date": "24 Jan 2026", "time": "2:00 PM", "note": "", "color": "blue" },
+      { "label": "Completion Submitted", "date": "10 Feb 2026", "time": "4:30 PM", "note": "", "color": "blue" },
+      { "label": "Approved & Completed", "date": "10 Feb 2026", "time": "6:00 PM", "note": "Payment released", "color": "green" }
+    ]
+  },
+  {
+    "id": "05",
+    "name": "SSO implementation",
+    "amount": "₹13,400",
+    "duration": "72 days",
+    "completionDate": "12 Jun 2026",
+    "rating": 5,
+    "status": "Completed",
+    "completedOn": "12 Jun 2026",
+    "freelancer": {
+      "name": "Vikram Malhotra",
+      "avatarInitials": "VM",
+      "avatarBg": "bg-purple-100 text-purple-700"
+    },
+    "bidAmount": "₹13,400",
+    "freelancerReceived": "₹12,060",
+    "paymentNote": "Payment was released to freelancer on 13 Jun 2026. HTGE platform fee retained.",
+    "deliverables": [
+      { "name": "SSO_Integration_Guide.pdf", "size": "1.9 MB", "type": "PDF", "fileType": "file" },
+      { "name": "Auth_Module_Source.zip", "size": "3.1 MB", "type": "ZIP", "fileType": "file" },
+      { "name": "Drive Link", "url": "https://github.com/htge/sso-module", "urlLabel": "https://github.com/htge/sso-module", "fileType": "link" }
+    ],
+    "timeline": [
+      { "label": "Project Published", "date": "01 Apr 2026", "time": "09:00 AM", "note": "", "color": "blue" },
+      { "label": "Work Started", "date": "02 Apr 2026", "time": "11:30 AM", "note": "Payment processed", "color": "blue" },
+      { "label": "Project Marked In Progress", "date": "03 Apr 2026", "time": "3:00 PM", "note": "", "color": "blue" },
+      { "label": "Completion Submitted", "date": "12 Jun 2026", "time": "5:00 PM", "note": "", "color": "blue" },
+      { "label": "Approved & Completed", "date": "12 Jun 2026", "time": "7:15 PM", "note": "Payment released", "color": "green" }
+    ]
+  }
+],
+  "notifications": [
+    { "id": 1, "title": "New proposal received", "description": "Lena Vogt submitted an approach for Onboarding flow redesign", "time": "10 minutes ago", "unread": true },
+    { "id": 2, "title": "Milestone completed", "description": "Payments API integration milestone 2 approved", "time": "2 hours ago", "unread": true },
+    { "id": 3, "title": "Payout processed", "description": "Bank transfer of ₹13,400 completed for SSO implementation", "time": "1 day ago", "unread": false }
+  ]
+}
