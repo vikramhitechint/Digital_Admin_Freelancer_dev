@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Search, Eye, MessageCircle, UserPlus, FileText, CheckCircle, Clock, Link as LinkIcon, Image as ImageIcon, X, Play, FileCheck, ThumbsUp, Users, ArrowRight
+  Search, Eye, MessageCircle, UserPlus, FileText, CheckCircle, Clock, Link as LinkIcon, Image as ImageIcon, X, Play, FileCheck, ThumbsUp, Users, ArrowRight, RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -14,9 +14,14 @@ type Project = {
   budget: string;
   submittedDate: string;
   freelancerAssigned: string[]; // Changed to array for multiple freelancers
+  freelancerAssignedIds: string[];
   references?: number;
   description?: string;
   timeline?: string;
+  completionPercentage?: number;
+  googleDriveLink?: string;
+  rating?: number;
+  review?: string;
 };
 
 const mapProject = (p: any): Project => ({
@@ -30,10 +35,14 @@ const mapProject = (p: any): Project => ({
   freelancerAssignedIds: p.freelancers?.map((f: any) => f.freelancer.id) || [],
   references: p.assets?.length || 0,
   description: p.description,
-  timeline: p.timeline
+  timeline: p.timeline,
+  completionPercentage: p.completionPercentage || 0,
+  googleDriveLink: p.googleDriveLink || '',
+  rating: p.rating,
+  review: p.review
 });
 
-type TabType = 'Published' | 'Ongoing' | 'Completed';
+type TabType = 'Published' | 'Ongoing' | 'Completed' | 'Dropped';
 
 export default function ProjectsPage() {
   const [activeTab, setActiveTab] = useState<TabType>('Published');
@@ -50,8 +59,8 @@ export default function ProjectsPage() {
         api.get('/admin/projects'),
         api.get('/admin/freelancers')
       ]);
-      setProjects(projRes.data.map(mapProject));
-      setFreelancers(freeRes.data);
+      setProjects(projRes.data.data.map(mapProject));
+      setFreelancers(freeRes.data.data);
     } catch (err) {
       toast.error('Failed to load data');
     }
@@ -61,14 +70,85 @@ export default function ProjectsPage() {
   const [viewProject, setViewProject] = useState<Project | null>(null);
   const [talkProject, setTalkProject] = useState<Project | null>(null);
   
+  // Chat State
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  
+  // Progress State
+  const [progress, setProgress] = useState(0);
+  const [driveLink, setDriveLink] = useState('');
+  
   // Assignment State
   const [assignProject, setAssignProject] = useState<Project | null>(null);
   const [selectedFreelancers, setSelectedFreelancers] = useState<string[]>([]);
+  
+  // Chat Impersonation State
+  const [selectedChatFreelancerId, setSelectedChatFreelancerId] = useState<string>('');
 
   const filteredProjects = projects.filter(p => p.status === activeTab);
 
   const handleTalk = (project: Project) => {
     setTalkProject(project);
+    setProgress(project.completionPercentage || 0);
+    setDriveLink(project.googleDriveLink || '');
+    if (project.freelancerAssignedIds?.length > 0) {
+      setSelectedChatFreelancerId(project.freelancerAssignedIds[0]);
+    } else {
+      setSelectedChatFreelancerId('');
+    }
+    fetchMessages(project.id);
+  };
+
+  const fetchMessages = async (projectId: string, fId?: string) => {
+    try {
+      const url = fId ? `/messages/${projectId}?freelancerId=${fId}` : `/messages/${projectId}`;
+      const res = await api.get(url);
+      if (res.data.success) {
+        setMessages(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch messages');
+    }
+  };
+
+  useEffect(() => {
+    let intervalId: any;
+    if (talkProject) {
+      // Fetch immediately
+      fetchMessages(talkProject.id, selectedChatFreelancerId);
+      
+      // Auto-poll every 3 seconds
+      intervalId = setInterval(() => {
+        fetchMessages(talkProject.id, selectedChatFreelancerId);
+      }, 3000);
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [talkProject, selectedChatFreelancerId]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!talkProject || !newMessage.trim()) return;
+
+    if (!selectedChatFreelancerId) {
+      toast.error('Please select a freelancer to send the message as');
+      return;
+    }
+
+    try {
+      const res = await api.post(`/messages/${talkProject.id}`, {
+        content: newMessage,
+        senderId: selectedChatFreelancerId,
+        freelancerId: selectedChatFreelancerId
+      });
+      if (res.data.success) {
+        setMessages([...messages, res.data.data]);
+        setNewMessage('');
+      }
+    } catch (err) {
+      toast.error('Failed to send message');
+    }
   };
 
   const handleView = (project: Project) => {
@@ -103,37 +183,189 @@ export default function ProjectsPage() {
   };
 
   // Workflow Actions
+  const handleSendPaymentRequest = async () => {
+    if (!talkProject) return;
+    if (!selectedChatFreelancerId) {
+      toast.error('Please select a freelancer to send as');
+      return;
+    }
+    try {
+      // Send payment request card to client chat
+      const amount = talkProject.budget; // e.g. "₹10,000"
+      await api.post(`/messages/${talkProject.id}`, {
+        content: `PAYMENT_REQUEST_PAYLOAD|${amount}|${talkProject.title}`,
+        senderId: selectedChatFreelancerId,
+        freelancerId: selectedChatFreelancerId
+      });
+      setMessages(prev => [...prev, { text: `PAYMENT_REQUEST_PAYLOAD|${amount}|${talkProject.title}`, sender: 'Admin', senderId: selectedChatFreelancerId, time: '' }]);
+      toast.success('Payment request sent to client!');
+      fetchMessages(talkProject.id, selectedChatFreelancerId);
+    } catch (err) {
+      toast.error('Failed to send payment request');
+    }
+  };
+
+  const handleRejectProject = async () => {
+    if (!talkProject) return;
+    if (!selectedChatFreelancerId) {
+      toast.error('Please select a freelancer to send as');
+      return;
+    }
+    if (!window.confirm('Are you sure you want to reject this project?')) return;
+    try {
+      await api.post(`/messages/${talkProject.id}`, {
+        content: `PROJECT_REJECTED_PAYLOAD|${talkProject.title}`,
+        senderId: selectedChatFreelancerId,
+        freelancerId: selectedChatFreelancerId
+      });
+      toast.success('Project rejected and client notified.');
+      setTalkProject(null);
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to reject project');
+    }
+  };
+
   const handleMoveToOngoing = async () => {
     if (!talkProject) return;
     try {
       await api.put(`/projects/${talkProject.id}/status`, { status: 'ONGOING' });
-      toast.success("Project approved. Amount released to Escrow. Moved to Ongoing.");
+      toast.success('Project moved to Ongoing!');
       setTalkProject(null);
       setActiveTab('Ongoing');
       fetchData();
     } catch (err) {
-      toast.error('Failed to approve project');
+      toast.error('Failed to move to ongoing');
     }
   };
 
   const handleSendCompletionRequest = async () => {
     if (!talkProject) return;
-    toast.loading("Sending Google Drive link to client...", { duration: 1500 });
+    if (!selectedChatFreelancerId) {
+      toast.error('Please select a freelancer to send the message as');
+      return;
+    }
+    toast.loading("Updating progress and sending Google Drive link...", { duration: 1500 });
     setTimeout(async () => {
       try {
-        await api.put(`/projects/${talkProject.id}/status`, { status: 'COMPLETED' });
-        toast.success("Client accepted the completion request! Project marked as Completed.");
-        setTalkProject(null);
-        setActiveTab('Completed');
+        await api.put(`/projects/${talkProject.id}/progress`, {
+          completionPercentage: progress,
+          googleDriveLink: driveLink
+        });
+
+        const res = await api.post(`/messages/${talkProject.id}`, {
+          content: `Work progress is 100%. Here is the Google Drive link: ${driveLink}`,
+          senderId: selectedChatFreelancerId,
+          freelancerId: selectedChatFreelancerId
+        });
+        
+        if (res.data.success) {
+          setMessages(prev => [...prev, res.data.data]);
+        }
+
+        toast.success("Progress updated! Now wait for client approval in chat.");
         fetchData();
       } catch (err) {
-        toast.error('Failed to complete project');
+        toast.error('Failed to update progress');
       }
     }, 1500);
   };
 
+  const handleMarkAsCompleted = async () => {
+    if (!talkProject) return;
+    try {
+      await api.put(`/projects/${talkProject.id}/status`, { status: 'COMPLETED' });
+      toast.success("Project officially marked as Completed!");
+      setTalkProject(null);
+      setActiveTab('Completed');
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to complete project');
+    }
+  };
+
   const handleApproveWork = () => {
     toast.success("Progress approved and updated!");
+  };
+
+  const handleRevertToOngoing = async () => {
+    if (!talkProject) return;
+    try {
+      await api.put(`/projects/${talkProject.id}/status`, { status: 'ONGOING' });
+      toast.success("Project updated and moved back to Ongoing.");
+      setTalkProject(null);
+      setActiveTab('Ongoing');
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to update project');
+    }
+  };
+
+  const handleSendLink = async () => {
+    if (!talkProject) return;
+    if (!selectedChatFreelancerId) {
+      toast.error('Please select a freelancer to send the message as');
+      return;
+    }
+    if (!driveLink) {
+      toast.error('Please enter a link');
+      return;
+    }
+    
+    try {
+      await api.put(`/projects/${talkProject.id}/progress`, {
+        completionPercentage: progress,
+        googleDriveLink: driveLink
+      });
+
+      const res = await api.post(`/messages/${talkProject.id}`, {
+        content: `DELIVERABLE_LINK_PAYLOAD|${driveLink}`,
+        senderId: selectedChatFreelancerId,
+        freelancerId: selectedChatFreelancerId
+      });
+      
+      if (res.data.success) {
+        setMessages(prev => [...prev, res.data.data]);
+      }
+
+      toast.success("Link sent to chat!");
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to send link');
+    }
+  };
+
+  const handleUpdateProgress = async () => {
+    if (!talkProject) return;
+    if (!selectedChatFreelancerId) {
+      toast.error('Please select a freelancer to send the message as');
+      return;
+    }
+    try {
+      await api.put(`/projects/${talkProject.id}/progress`, {
+        completionPercentage: progress,
+        googleDriveLink: driveLink
+      });
+
+      const messageContent = driveLink
+        ? `Work progress updated to ${progress}%. Here is the link: ${driveLink}`
+        : `Work progress updated to ${progress}%.`;
+
+      const res = await api.post(`/messages/${talkProject.id}`, {
+        content: messageContent,
+        senderId: selectedChatFreelancerId,
+        freelancerId: selectedChatFreelancerId
+      });
+      
+      if (res.data.success) {
+        setMessages(prev => [...prev, res.data.data]);
+      }
+
+      toast.success("Project progress updated and sent to chat!");
+      fetchData(); // Refresh list so new percentages are stored
+    } catch (err) {
+      toast.error("Failed to update progress");
+    }
   };
 
   return (
@@ -159,7 +391,7 @@ export default function ProjectsPage() {
       {/* Tabs */}
       <div className="px-8 pt-6">
         <div className="flex border-b border-slate-200">
-          {(['Published', 'Ongoing', 'Completed'] as TabType[]).map(tab => (
+          {(['Published', 'Ongoing', 'Completed', 'Dropped'] as TabType[]).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -268,9 +500,36 @@ export default function ProjectsPage() {
                     )}
 
                     {activeTab === 'Completed' && (
-                      <div className="flex items-center gap-2 px-6 py-3 bg-emerald-50 text-emerald-700 rounded-lg text-base font-bold border border-emerald-100">
-                        <CheckCircle className="w-5 h-5" />
-                        Settled & Closed
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-3">
+                          {/* View Chat button for completed projects */}
+                          <button
+                            onClick={() => handleTalk(project)}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 rounded-lg text-sm font-bold shadow-sm transition"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            View Chat & Review
+                          </button>
+                          <div className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-bold border border-emerald-100">
+                            <CheckCircle className="w-4 h-4" />
+                            Settled & Closed
+                          </div>
+                        </div>
+                        {project.rating && (
+                          <div className="flex items-center gap-1">
+                            {[1,2,3,4,5].map(s => (
+                              <span key={s} className={`text-lg ${s <= project.rating! ? 'text-amber-400' : 'text-slate-200'}`}>★</span>
+                            ))}
+                            <span className="text-sm font-bold text-slate-600 ml-1">{project.rating}/5</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === 'Dropped' && (
+                      <div className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-700 rounded-lg text-base font-bold border border-red-100">
+                        <X className="w-5 h-5" />
+                        Project Dropped
                       </div>
                     )}
 
@@ -361,15 +620,27 @@ export default function ProjectsPage() {
               <div className="flex items-center gap-4">
                 {/* Contextual Action Buttons */}
                 {talkProject.status === 'Published' && (
-                  <button onClick={handleMoveToOngoing} className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-emerald-700 transition shadow-sm">
-                    <CheckCircle className="w-4 h-4" />
-                    Approve & Release Escrow
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleSendPaymentRequest}
+                      className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-emerald-700 transition shadow-sm"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      Approve & Request Payment
+                    </button>
+                    <button
+                      onClick={handleRejectProject}
+                      className="flex items-center gap-2 bg-red-500 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-red-600 transition shadow-sm"
+                    >
+                      <X className="w-4 h-4" />
+                      Reject
+                    </button>
+                  </div>
                 )}
-                {talkProject.status === 'Ongoing' && (
-                  <button onClick={handleSendCompletionRequest} className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-sm">
-                    <ArrowRight className="w-4 h-4" />
-                    Send Completion Request (GDrive)
+                {talkProject.status === 'Completed' && (
+                  <button onClick={handleRevertToOngoing} className="flex items-center gap-2 bg-amber-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-700 transition shadow-sm">
+                    <RefreshCw className="w-4 h-4" />
+                    Update Project (Back to Ongoing)
                   </button>
                 )}
 
@@ -387,56 +658,139 @@ export default function ProjectsPage() {
                     <span className="text-xs font-bold bg-slate-200 text-slate-600 px-4 py-1.5 rounded-full uppercase tracking-wider">Project Talk Space Initiated</span>
                   </div>
                   
-                  {/* Client Message */}
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-slate-300 flex-shrink-0 mt-1 shadow-sm flex items-center justify-center font-bold text-slate-600">C</div>
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl rounded-tl-sm text-base text-slate-700 shadow-sm max-w-xl">
-                      <p className="font-bold text-slate-900 mb-1">{talkProject.companyName}</p>
-                      We have published our requirement and the escrow is ready. Please allocate the best freelancers.
-                    </div>
-                  </div>
+                  {/* Dynamic Messages Map */}
+                  {messages.map((msg: any) => {
+                    const isMe = msg.senderId === selectedChatFreelancerId;
+                    return (
+                      <div key={msg.id} className={`flex items-start gap-4 ${isMe ? 'flex-row-reverse' : ''}`}>
+                        <div className={`w-10 h-10 rounded-full flex-shrink-0 mt-1 flex items-center justify-center font-bold shadow-sm ${isMe ? 'bg-blue-600 text-white' : 'bg-slate-300 text-slate-600'}`}>
+                          {msg.sender?.charAt(0) || 'U'}
+                        </div>
+                        <div className={`p-5 rounded-2xl text-base shadow-sm max-w-xl ${isMe ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white border border-slate-200 text-slate-700 rounded-tl-sm'}`}>
+                          <p className={`font-bold mb-1 ${isMe ? 'text-blue-100' : 'text-slate-900'}`}>
+                            {msg.sender}
+                          </p>
+                          {(() => {
+                            // CLIENT APPROVAL REQUEST card
+                            if (msg.text && msg.text.startsWith('CLIENT_APPROVAL_REQUEST|')) {
+                              const projectTitle = msg.text.split('|')[1] || talkProject?.title;
+                              return (
+                                <div className="mt-2 rounded-xl border border-emerald-200 overflow-hidden shadow-sm">
+                                  <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-3 flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                                      <ThumbsUp className="w-4 h-4 text-white" />
+                                    </div>
+                                    <div>
+                                      <h4 className="font-bold text-white text-sm">Client Approved the Deliverables</h4>
+                                      <p className="text-emerald-100 text-xs">{projectTitle}</p>
+                                    </div>
+                                  </div>
+                                  <div className="bg-emerald-50 px-4 py-3">
+                                    <p className="text-sm text-emerald-800 font-medium mb-3">The client has reviewed and accepted the final deliverables. You can now officially close this project.</p>
+                                    {talkProject?.status !== 'Completed' && (
+                                      <button
+                                        onClick={handleMarkAsCompleted}
+                                        className="w-full py-2 bg-emerald-600 text-white font-bold text-sm rounded-lg hover:bg-emerald-700 transition cursor-pointer flex items-center justify-center gap-2"
+                                      >
+                                        <CheckCircle className="w-4 h-4" />
+                                        Move Project to Completed
+                                      </button>
+                                    )}
+                                    {talkProject?.status === 'Completed' && (
+                                      <div className="flex items-center justify-center gap-2 py-2 bg-emerald-100 rounded-lg">
+                                        <CheckCircle className="w-4 h-4 text-emerald-600" />
+                                        <span className="text-emerald-700 text-sm font-bold">Project Completed</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                            // PAYMENT REQUEST card (admin view - shows as sent confirmation)
+                            if (msg.text && msg.text.startsWith('PAYMENT_REQUEST_PAYLOAD|')) {
+                              const parts = msg.text.split('|');
+                              const amount = parts[1] || '';
+                              const title = parts[2] || talkProject?.title;
+                              return (
+                                <div className="mt-2 rounded-xl border border-blue-200 overflow-hidden shadow-sm">
+                                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                      </svg>
+                                    </div>
+                                    <div>
+                                      <h4 className="font-bold text-white text-sm">Payment Request Sent</h4>
+                                      <p className="text-blue-100 text-xs">{title}</p>
+                                    </div>
+                                  </div>
+                                  <div className="bg-blue-50 px-4 py-3">
+                                    <p className="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1">Escrow Amount</p>
+                                    <p className="text-xl font-black text-blue-800 font-mono">{amount}</p>
+                                    <p className="text-xs text-slate-500 mt-2">Client has been asked to pay the escrow amount to proceed.</p>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            // PROJECT REJECTED card (admin view)
+                            if (msg.text && msg.text.startsWith('PROJECT_REJECTED_PAYLOAD|')) {
+                              const title = msg.text.split('|')[1] || '';
+                              return (
+                                <div className="mt-2 rounded-xl border border-red-200 overflow-hidden shadow-sm">
+                                  <div className="bg-gradient-to-r from-red-500 to-rose-500 px-4 py-3 flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                                      <X className="w-4 h-4 text-white" />
+                                    </div>
+                                    <div>
+                                      <h4 className="font-bold text-white text-sm">Project Rejected</h4>
+                                      <p className="text-red-100 text-xs">{title}</p>
+                                    </div>
+                                  </div>
+                                  <div className="bg-red-50 px-4 py-3">
+                                    <p className="text-sm text-red-700 font-medium">This project was rejected and the client has been notified.</p>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            if (msg.text && msg.text.startsWith('DELIVERABLE_LINK_PAYLOAD|')) {
+                              const deliverableUrl = msg.text.split('|')[1];
+                              return (
+                                <div className={`p-4 mt-2 rounded-xl border ${isMe ? 'bg-blue-500 border-blue-400' : 'bg-slate-50 border-slate-200'} shadow-sm flex flex-col gap-3`}>
+                                  <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-lg ${isMe ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-600'}`}>
+                                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                                      </svg>
+                                    </div>
+                                    <div>
+                                      <h4 className={`font-bold text-sm ${isMe ? 'text-white' : 'text-slate-900'}`}>Project Deliverables Ready</h4>
+                                      <p className={`text-xs ${isMe ? 'text-blue-100' : 'text-slate-500'}`}>Secure Google Drive Access</p>
+                                    </div>
+                                  </div>
+                                  <a href={deliverableUrl} target="_blank" rel="noopener noreferrer" className={`w-full py-2 flex items-center justify-center gap-2 font-bold text-sm rounded-lg transition shadow-sm ${isMe ? 'bg-white text-blue-600 hover:bg-slate-50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+                                    Access Project Files
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                  </a>
+                                </div>
+                              );
+                            }
+                            return <div>{msg.text}</div>;
+                          })()}
+                          <div className={`text-xs mt-2 ${isMe ? 'text-blue-200' : 'text-slate-400'}`}>{msg.time}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
 
-                  {/* System Indication */}
-                  {talkProject.freelancerAssigned.length > 0 && (
+                  {/* Pending Client Approval Notification */}
+                  {messages.some((m: any) => m.text?.startsWith('CLIENT_APPROVAL_REQUEST|')) &&
+                   talkProject?.status !== 'Completed' && (
                     <div className="flex justify-center">
-                      <span className="text-xs font-bold bg-blue-50 border border-blue-100 text-blue-600 px-4 py-1.5 rounded-full">
-                        Admin allocated {talkProject.freelancerAssigned.length} freelancer(s) to this project.
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Freelancer approaching Client */}
-                  {talkProject.freelancerAssigned.length > 0 && (
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 flex-shrink-0 mt-1 shadow-sm flex items-center justify-center text-emerald-700 font-bold">F</div>
-                      <div className="bg-white border border-slate-200 p-5 rounded-2xl rounded-tl-sm text-base text-slate-700 shadow-sm max-w-xl">
-                        <p className="font-bold text-emerald-700 mb-1">{talkProject.freelancerAssigned[0] || 'Freelancer'} <span className="text-slate-400 font-normal text-sm ml-2">approached the client</span></p>
-                        Hi team, I have reviewed your requirements and I am fully equipped to handle this. I can start immediately.
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Admin Message */}
-                  <div className="flex items-start gap-4 flex-row-reverse">
-                    <div className="w-10 h-10 rounded-full bg-blue-600 flex-shrink-0 mt-1 flex items-center justify-center text-sm text-white font-bold shadow-sm">A</div>
-                    <div className="bg-blue-600 p-5 rounded-2xl rounded-tr-sm text-base text-white shadow-sm max-w-xl">
-                      <p className="font-bold text-blue-100 mb-1">You (Digital Freelancer Admin)</p>
-                      Hello {talkProject.companyName}, I have assigned our top talent to this project. You can communicate with them directly here. Once you are comfortable, I will approve and release the escrow so work can begin.
-                    </div>
-                  </div>
-
-                  {/* System Update / Approval (If Ongoing) */}
-                  {talkProject.status === 'Ongoing' && (
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-full bg-indigo-100 border border-indigo-200 flex-shrink-0 mt-1 flex items-center justify-center shadow-sm">
-                        <FileCheck className="w-5 h-5 text-indigo-600" />
-                      </div>
-                      <div className="bg-indigo-50 border border-indigo-200 p-5 rounded-2xl rounded-tl-sm text-base text-indigo-900 shadow-sm max-w-xl">
-                        <p className="font-bold text-indigo-700 mb-2 uppercase tracking-wide text-sm">Update Received</p>
-                        <p className="mb-3">The freelancer has submitted an update. Please review the progress.</p>
-                        <button onClick={handleApproveWork} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition">
-                          <ThumbsUp className="w-4 h-4" /> Acknowledge Progress
-                        </button>
+                      <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-4 py-2 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span className="text-xs font-bold text-amber-700">Client awaiting your approval to close the project</span>
                       </div>
                     </div>
                   )}
@@ -444,18 +798,20 @@ export default function ProjectsPage() {
                 </div>
 
                 {/* Input Area */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-200">
+                <form onSubmit={handleSendMessage} className="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-200">
                   <div className="flex items-center gap-3">
-                    <input 
-                      type="text" 
-                      placeholder="Message the client or freelancer on behalf of Admin..." 
-                      className="flex-1 px-6 py-4 bg-slate-50 border border-slate-300 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
-                    />
-                    <button className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition shadow-md shrink-0">
+                      <input 
+                        type="text" 
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Message the client..." 
+                        className="flex-1 px-6 py-4 bg-slate-50 border border-slate-300 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
+                      />
+                    <button type="submit" className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition shadow-md shrink-0 cursor-pointer">
                       <Play className="w-5 h-5 ml-1" />
                     </button>
                   </div>
-                </div>
+                </form>
               </div>
 
               {/* Right Sidebar Area (Allocated Freelancers & Progress) */}
@@ -472,54 +828,151 @@ export default function ProjectsPage() {
                       <p className="text-sm text-slate-500 italic">No freelancers assigned yet.</p>
                     ) : (
                       <div className="space-y-3">
-                        {talkProject.freelancerAssigned.map((name, i) => (
-                          <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                            <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
-                              {name.charAt(0)}
+                        {talkProject.freelancerAssigned.map((name, i) => {
+                          const fid = talkProject.freelancerAssignedIds?.[i];
+                          const isSelected = selectedChatFreelancerId === fid;
+                          return (
+                            <div 
+                              key={i} 
+                              onClick={() => setSelectedChatFreelancerId(isSelected ? '' : fid)}
+                              className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition ${
+                                isSelected ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-300' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                              }`}
+                            >
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                isSelected ? 'bg-blue-600 text-white' : 'bg-emerald-100 text-emerald-700'
+                              }`}>
+                                {name?.charAt(0) || 'U'}
+                              </div>
+                              <span className={`font-bold text-sm ${isSelected ? 'text-blue-800' : 'text-slate-700'}`}>{name || 'Unknown'}</span>
                             </div>
-                            <span className="font-bold text-slate-700 text-sm">{name}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
 
-                  {/* Work Progress Section (Only for Ongoing/Completed) */}
-                  {talkProject.status !== 'Published' && (
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Work Progress</h3>
-                      <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-2xl border border-slate-200 mb-6">
-                        <div className="relative w-32 h-32 flex items-center justify-center">
-                          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                            <path className="text-slate-200" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" />
-                            <path className="text-blue-600" strokeDasharray="65, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" />
-                          </svg>
-                          <div className="absolute text-3xl font-black text-slate-900">65%</div>
+                  {/* Work Progress / Deliverables — only for Ongoing/Published */}
+                  {talkProject.status !== 'Published' && talkProject.status !== 'Completed' && (
+                    <div className="space-y-6">
+                      {/* Section 1: Progress */}
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Work Progress</h3>
+                        <div className="flex flex-col p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+                          <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Completion Percentage</label>
+                            <div className="flex items-center gap-3">
+                              <input 
+                                type="range" 
+                                min="0" max="100" 
+                                value={progress}
+                                onChange={(e) => setProgress(Number(e.target.value))}
+                                className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                              />
+                              <span className="font-bold text-slate-900 w-10 text-right">{progress}%</span>
+                            </div>
+                          </div>
+                          
+                          <button 
+                            onClick={handleUpdateProgress}
+                            className="w-full py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition"
+                          >
+                            Send Progress to Chat
+                          </button>
                         </div>
-                        <p className="text-xs font-bold text-slate-500 mt-4 uppercase tracking-wider">Overall Completion</p>
                       </div>
 
+                      {/* Section 2: Deliverables */}
                       <div>
-                        <h4 className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">Milestones</h4>
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <CheckCircle className="w-5 h-5 text-emerald-500" />
-                            <span className="text-sm font-semibold text-slate-700 line-through">Architecture</span>
+                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Deliverables</h3>
+                        <div className="flex flex-col p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+                          <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Google Drive Link</label>
+                            <input 
+                              type="text" 
+                              value={driveLink}
+                              onChange={(e) => setDriveLink(e.target.value)}
+                              placeholder="https://drive.google.com/..." 
+                              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                            />
                           </div>
-                          <div className="flex items-center gap-3">
-                            <CheckCircle className="w-5 h-5 text-emerald-500" />
-                            <span className="text-sm font-semibold text-slate-700 line-through">Database Schema</span>
+
+                          <div className="flex flex-col gap-2">
+                            <button 
+                              onClick={handleSendLink}
+                              disabled={!driveLink}
+                              className="w-full py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition disabled:bg-slate-300"
+                            >
+                              Send Link to Chat
+                            </button>
+
+                            {progress === 100 && (
+                              <button 
+                                onClick={handleMarkAsCompleted}
+                                className="w-full py-2 mt-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition flex items-center justify-center gap-2"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                                Mark as Final Completed
+                              </button>
+                            )}
                           </div>
-                          <div className="flex items-center gap-3">
-                            <div className="w-5 h-5 rounded-full border-2 border-blue-500 flex items-center justify-center">
-                              <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
-                            </div>
-                            <span className="text-sm font-bold text-blue-700">API Endpoints</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="w-5 h-5 rounded-full border-2 border-slate-300"></div>
-                            <span className="text-sm font-medium text-slate-500">Frontend Integration</span>
-                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Completed Project Sidebar — Rating/Review & Reopen Option */}
+                  {talkProject.status === 'Completed' && (
+                    <div className="space-y-5">
+                      {/* Project Status Badge */}
+                      <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                        <CheckCircle className="w-5 h-5 text-emerald-600" />
+                        <div>
+                          <p className="text-sm font-black text-emerald-800">Project Completed</p>
+                          <p className="text-xs text-emerald-600 font-medium">Officially closed & settled</p>
+                        </div>
+                      </div>
+
+                      {/* Client Rating & Review */}
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Client Feedback</h3>
+                        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-3">
+                          {talkProject.rating ? (
+                            <>
+                              <div>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Star Rating</p>
+                                <div className="flex items-center gap-1">
+                                  {[1,2,3,4,5].map(s => (
+                                    <span key={s} className={`text-2xl ${s <= talkProject.rating! ? 'text-amber-400' : 'text-slate-200'}`}>★</span>
+                                  ))}
+                                  <span className="ml-2 font-black text-slate-800 text-lg">{talkProject.rating}/5</span>
+                                </div>
+                              </div>
+                              {talkProject.review && (
+                                <div>
+                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Review</p>
+                                  <p className="text-sm text-slate-700 bg-white rounded-lg p-3 border border-amber-100 leading-relaxed italic">"{talkProject.review}"</p>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <p className="text-sm text-slate-500 italic text-center py-2">No rating submitted yet.</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Send Back to Ongoing */}
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Project Update</h3>
+                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                          <p className="text-xs text-slate-500 font-medium">If revisions are needed, send this project back to Ongoing so the freelancer can make updates.</p>
+                          <button
+                            onClick={handleRevertToOngoing}
+                            className="w-full py-2.5 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                            Send Back to Ongoing
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -574,13 +1027,13 @@ export default function ProjectsPage() {
                         </div>
                         
                         <div className="w-14 h-14 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-black text-xl border border-slate-200 shrink-0 mt-0">
-                          {freelancer.fullName.charAt(0)}
+                          {freelancer.initials ? freelancer.initials.charAt(0) : freelancer.name?.charAt(0)}
                         </div>
                         <div>
-                          <h3 className="font-extrabold text-slate-900 text-lg">{freelancer.fullName}</h3>
-                          <p className="text-base font-medium text-slate-500 mb-3">{freelancer.profile?.title || 'Freelancer'}</p>
+                          <h3 className="font-extrabold text-slate-900 text-lg">{freelancer.name}</h3>
+                          <p className="text-base font-medium text-slate-500 mb-3">{freelancer.title || 'Freelancer'}</p>
                           <div className="flex flex-wrap gap-2">
-                            {freelancer.profile?.skills?.map((skill: string) => (
+                            {freelancer.skills?.map((skill: string) => (
                               <span key={skill} className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold border border-slate-200">
                                 {skill}
                               </span>

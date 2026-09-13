@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { ErrorBoundary } from "react-error-boundary";
 import api from "../../utils/api";
 
-export default function ViewCompleteProject() {
+function ViewCompleteProjectContent() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [project, setProject] = useState<any>(null);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [savedToast, setSavedToast] = useState("");
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -27,7 +27,8 @@ export default function ViewCompleteProject() {
           amount: `₹${Number(p.budget).toLocaleString()}`,
           completionDate: new Date(p.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
           duration: "1 month", // Mocked
-          rating: savedData ? savedData.rating : 5,
+          rating: p.rating || 0,
+          review: p.review || "",
           freelancer: p.freelancers?.[0]?.freelancer ? {
             name: p.freelancers[0].freelancer.fullName
           } : { name: "Freelancer" }
@@ -41,32 +42,9 @@ export default function ViewCompleteProject() {
     if (id) fetchProject();
   }, [id]);
 
-  // Clickable Star Rating Handler (Updates localStorage and reflects in list table)
+  // Clickable Star Rating Handler
   const handleRateProject = (stars: number) => {
     setCurrentRating(stars);
-
-    const savedProjects: any[] =
-      JSON.parse(localStorage.getItem("htge_completed_projects") || "[]");
-
-    let found = false;
-    const updatedProjects = savedProjects.map((p) => {
-      if (String(p.id) === String(project?.id)) {
-        found = true;
-        return { ...p, rating: stars };
-      }
-      return p;
-    });
-
-    if (!found && project) {
-      updatedProjects.push({ id: project.id, rating: stars });
-    }
-
-    localStorage.setItem("htge_completed_projects", JSON.stringify(updatedProjects));
-    setProject((prev: any) => (prev ? { ...prev, rating: stars } : prev));
-
-    // Toast alert
-    setSavedToast(`Rating updated to ${stars} Star${stars > 1 ? "s" : ""}!`);
-    setTimeout(() => setSavedToast(""), 2200);
   };
 
   const getFileIcon = (type: string) => {
@@ -110,17 +88,40 @@ Downloaded: ${new Date().toLocaleString()}
     );
   }
 
+  // Fallback for completion date
+  const displayCompletionDate = project.completedOn || project.completionDate || 'N/A';
+  // Fallback for budget
+  const displayBudget = project.amount || 'N/A';
+
+  // Safely parse timeline
+  let safeTimeline = [
+    { label: "Project Published", date: "14 May 2026", time: "10:00 AM", note: "", color: "blue" },
+    { label: "Freelancer started working on", date: "15 May 2026", time: "2:30 PM", note: "Payment processed", color: "blue" },
+    { label: "Project Marked In Progress", date: "16 May 2026", time: "3:00 PM", note: "", color: "blue" },
+    { label: "Completion Submitted", date: "01 Jul 2026", time: "5:45 PM", note: "", color: "blue" },
+    { label: "Approved & Completed", date: "01 Jul 2026", time: "7:15 PM", note: "Payment released", color: "green" }
+  ];
+
+  if (project.timeline) {
+    try {
+      safeTimeline = typeof project.timeline === 'string' ? JSON.parse(project.timeline) : project.timeline;
+    } catch (e) {
+      console.error("Failed to parse timeline", e);
+    }
+  }
+
+  let safeDeliverables: any[] = [];
+  if (project.deliverables) {
+    try {
+      safeDeliverables = typeof project.deliverables === 'string' ? JSON.parse(project.deliverables) : project.deliverables;
+    } catch (e) {
+      console.error("Failed to parse deliverables", e);
+    }
+  }
+
+
   return (
     <div className="space-y-5 max-w-4xl mx-auto pb-16 relative">
-      {/* Toast Notification */}
-      {savedToast && (
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 bg-emerald-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg border border-emerald-500 animate-bounce">
-          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-          </svg>
-          {savedToast}
-        </div>
-      )}
 
       {/* Back Navigation */}
       <div className="flex items-center justify-between">
@@ -133,7 +134,24 @@ Downloaded: ${new Date().toLocaleString()}
           </svg>
           Back to Projects
         </button>
-        <span className="text-xs font-mono text-slate-400">ID: #{project.id}</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-mono text-slate-400">ID: #{project.id?.slice(0,8)}</span>
+          {project.freelancers?.[0]?.freelancer && (
+            <button
+              onClick={() =>
+                navigate(`/projects/complete/${project.id}/chat/${project.freelancers[0].freelancer.id}`, {
+                  state: { project, freelancer: project.freelancers[0].freelancer }
+                })
+              }
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition cursor-pointer"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              View Chat & Review
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ========================================================================= */}
@@ -165,11 +183,11 @@ Downloaded: ${new Date().toLocaleString()}
           </div>
           <div>
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Project Amount</p>
-            <p className="text-sm font-bold text-slate-900 mt-1">{project.amount}</p>
+            <p className="text-sm font-bold text-slate-900 mt-1">{displayBudget}</p>
           </div>
           <div>
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Completion Date</p>
-            <p className="text-sm font-bold text-slate-900 mt-1">{project.completionDate}</p>
+            <p className="text-sm font-bold text-slate-900 mt-1">{displayCompletionDate}</p>
           </div>
           <div>
             <div className="flex items-center justify-between">
@@ -220,25 +238,22 @@ Downloaded: ${new Date().toLocaleString()}
         <h2 className="text-sm font-bold text-slate-900">Deliverables</h2>
 
         <div className="space-y-2">
-          {(project.deliverables || [
-            { name: "Dashboard_Final.fig", size: "2.5 MB", type: "Figma", fileType: "file" },
-            { name: "Design_Specs_&_Component_Library.pdf", size: "1.2 MB", type: "PDF", fileType: "file" },
-            { name: "Drive Link", url: "https://figma.com/design/abc123", urlLabel: "https://figma.com/design/abc123", fileType: "link" }
-          ]).map((item: any, idx: number) => (
-            <div
-              key={idx}
-              className="flex items-center justify-between px-4 py-3 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-blue-50/30 hover:border-blue-100 transition group"
-            >
-              <div className="flex items-center gap-3 overflow-hidden">
-                <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-xs">
-                  {getFileIcon(item.fileType)}
-                </div>
-                <div className="overflow-hidden">
-                  <p className="text-xs font-semibold text-slate-800 truncate">{item.name}</p>
-                  <p className="text-[10px] text-slate-400">
-                    {item.fileType === "link" ? (item.urlLabel || item.url) : `${item.size} • ${item.type}`}
-                  </p>
-                </div>
+          {safeDeliverables.length > 0 ? (
+            safeDeliverables.map((item: any, idx: number) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between px-4 py-3 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-blue-50/30 hover:border-blue-100 transition group"
+              >
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-xs">
+                    {getFileIcon(item.fileType)}
+                  </div>
+                  <div className="overflow-hidden">
+                    <p className="text-xs font-semibold text-slate-800 truncate">{item.name}</p>
+                    <p className="text-[10px] text-slate-400">
+                      {item.fileType === "link" ? (item.urlLabel || item.url) : `${item.size} • ${item.type}`}
+                    </p>
+                  </div>
               </div>
 
               {item.fileType === "link" ? (
@@ -259,28 +274,61 @@ Downloaded: ${new Date().toLocaleString()}
                 </button>
               )}
             </div>
-          ))}
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6">
+              <p className="text-sm font-semibold text-slate-500">No deliverables found.</p>
+              <p className="text-xs text-slate-400">The freelancer hasn't submitted any final files yet.</p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. PROJECT TIMELINE CARD                                                  */}
+      {/* 3. RATING PROMPT BANNER                                                   */}
       {/* ========================================================================= */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 space-y-4">
-        <h2 className="text-sm font-bold text-slate-900">Project Timeline</h2>
+      {!project.rating && (
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 flex items-center justify-between gap-4 shadow-md">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-white font-bold text-sm">Rate your freelancer!</p>
+              <p className="text-blue-100 text-xs mt-0.5">Open the project chat and click <strong>"Rate & Review"</strong> to submit your feedback.</p>
+            </div>
+          </div>
+        </div>
+      )}
+      {project.rating && (
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6">
+          <h2 className="text-sm font-bold text-slate-900 mb-3">Your Rating</h2>
+          <div className="flex items-center gap-1 mb-2">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <svg key={s} className={`w-6 h-6 ${s <= project.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'}`} viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+            ))}
+            <span className="ml-2 text-sm font-bold text-slate-700">{project.rating}/5</span>
+          </div>
+          <p className="text-xs text-emerald-600 font-semibold">✓ Thank you for your feedback!</p>
+        </div>
+      )}
 
-        <div className="relative">
+      {/* ========================================================================= */}
+      {/* 4. ACTIVITY LOG (MOCKED)                                                  */}
+      {/* ========================================================================= */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <h2 className="text-sm font-bold text-slate-900 p-6 pb-0">Project Timeline</h2>
+
+        <div className="relative p-6 pt-4">
           {/* Vertical Connecting Line */}
           <div className="absolute left-[7px] top-2 bottom-2 w-px bg-slate-200"></div>
 
           <div className="space-y-5 relative">
-            {(project.timeline || [
-              { label: "Project Published", date: "14 May 2026", time: "10:00 AM", note: "", color: "blue" },
-              { label: "Freelancer started working on", date: "15 May 2026", time: "2:30 PM", note: "Payment processed", color: "blue" },
-              { label: "Project Marked In Progress", date: "16 May 2026", time: "3:00 PM", note: "", color: "blue" },
-              { label: "Completion Submitted", date: "01 Jul 2026", time: "5:45 PM", note: "", color: "blue" },
-              { label: "Approved & Completed", date: "01 Jul 2026", time: "7:15 PM", note: "Payment released", color: "green" }
-            ]).map((event: any, idx: number) => (
+            {safeTimeline.map((event: any, idx: number) => (
               <div key={idx} className="flex items-start gap-4 pl-1">
                 {/* Dot */}
                 <div
@@ -307,5 +355,20 @@ Downloaded: ${new Date().toLocaleString()}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ViewCompleteProject() {
+  return (
+    <ErrorBoundary fallbackRender={({ error }) => (
+      <div className="p-8 text-red-600">
+        <h2 className="text-xl font-bold mb-4">Something went wrong</h2>
+        <pre className="bg-red-50 p-4 rounded text-sm overflow-auto">
+          {(error as Error).message}
+        </pre>
+      </div>
+    )}>
+      <ViewCompleteProjectContent />
+    </ErrorBoundary>
   );
 }

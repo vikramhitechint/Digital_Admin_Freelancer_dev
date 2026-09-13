@@ -3,6 +3,7 @@ import userRoutes from './user.routes';
 import projectRoutes from './project.routes';
 import authRoutes from './auth.routes';
 import messageRoutes from './message.routes';
+import paymentRoutes from './payment.routes';
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/projects', projectRoutes);
 router.use('/messages', messageRoutes);
+router.use('/payments', paymentRoutes);
 
 // Admin Routes
 import adminDashboardRoutes from './admin/dashboard.routes';

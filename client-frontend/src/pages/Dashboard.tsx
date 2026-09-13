@@ -3,57 +3,99 @@ import api from "../utils/api";
 import { Project } from "../types";
 
 export default function Dashboard() {
-  const [selectedMonth, setSelectedMonth] = useState("All months");
-  const [selectedYear, setSelectedYear] = useState("All years");
+  const [selectedMonthStr, setSelectedMonthStr] = useState(() => {
+    const d = new Date();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    return `${d.getFullYear()}-${m}`;
+  });
   const [projects, setProjects] = useState<Project[]>([]);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
 
   useEffect(() => {
     api.get('/projects').then(res => setProjects(res.data)).catch(console.error);
+    api.get('/auth/me').then(res => setWalletBalance(Number(res.data.walletBalance) || 0)).catch(console.error);
   }, []);
 
-  const totalPublish = projects.filter(p => p.status === 'PUBLISHED').length;
-  const totalOngoing = projects.filter(p => p.status === 'ONGOING').length;
-  const totalComplete = projects.filter(p => p.status === 'COMPLETED').length;
-  const projectWorth = projects.reduce((acc, p) => acc + Number(p.budget), 0);
+  // Filter projects based on the selected month
+  const filteredProjects = projects.filter(p => {
+    if (!selectedMonthStr) return true;
+    const pDate = new Date(p.createdAt);
+    const m = String(pDate.getMonth() + 1).padStart(2, '0');
+    const y = pDate.getFullYear();
+    return `${y}-${m}` === selectedMonthStr;
+  });
+
+  const totalPublish = filteredProjects.filter(p => p.status === 'PUBLISHED').length;
+  const totalOngoing = filteredProjects.filter(p => p.status === 'ONGOING').length;
+  const totalComplete = filteredProjects.filter(p => p.status === 'COMPLETED').length;
+  const projectWorth = filteredProjects.reduce((acc, p) => acc + Number(p.budget), 0);
 
   // Simplified donut stats
-  const total = projects.length;
+  const total = filteredProjects.length;
   const publishPct = total > 0 ? (totalPublish / total) * 100 : 0;
   const ongoingPct = total > 0 ? (totalOngoing / total) * 100 : 0;
   const completePct = total > 0 ? (totalComplete / total) * 100 : 0;
   
-  // Hardcoded categories/freelancers for now since this is just a client overview, 
-  // but ideally derived from actual projects.
-  const skills = [
-    { name: "UI/UX Design", count: 8, percentage: 45, color: "#2563EB" },
-    { name: "Frontend Dev", count: 6, percentage: 35, color: "#0D9488" },
-    { name: "Backend APIs", count: 4, percentage: 20, color: "#F59E0B" }
-  ];
+  // Calculate dynamic skill counts from freelancers in the filtered projects
+  const skillCounts: Record<string, number> = {};
+  filteredProjects.forEach(p => {
+    if (p.freelancers) {
+      p.freelancers.forEach((f: any) => {
+        const skills = f.freelancer?.profile?.skills || [];
+        skills.forEach((s: string) => {
+          skillCounts[s] = (skillCounts[s] || 0) + 1;
+        });
+      });
+    }
+  });
+
+  const totalSkills = Object.values(skillCounts).reduce((a, b) => a + b, 0);
+  const colors = ["#2563EB", "#0D9488", "#F59E0B", "#10B981", "#8B5CF6"];
+  const dynamicSkills = Object.entries(skillCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5) // top 5
+    .map(([name, count], idx) => ({
+      name,
+      count,
+      percentage: totalSkills > 0 ? (count / totalSkills) * 100 : 0,
+      color: colors[idx % colors.length]
+    }));
+
+  // Extract unique freelancers from projects
+  const uniqueFreelancers = new Map();
+  filteredProjects.forEach(p => {
+    if (p.freelancers) {
+      p.freelancers.forEach((f: any) => {
+        if (!uniqueFreelancers.has(f.freelancer.id)) {
+          uniqueFreelancers.set(f.freelancer.id, {
+            id: f.freelancer.id,
+            name: f.freelancer.fullName,
+            title: f.freelancer.role || 'Freelancer',
+            avatar: f.freelancer.fullName.charAt(0)
+          });
+        }
+      });
+    }
+  });
+  const recentFreelancersList = Array.from(uniqueFreelancers.values()).slice(0, 4);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Filters */}
       <div className="flex justify-end items-center gap-3">
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">FILTER</span>
-        <select
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">FILTER MONTH</span>
+        <input
+          type="month"
+          value={selectedMonthStr}
+          onChange={(e) => setSelectedMonthStr(e.target.value)}
           className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        />
+        <button 
+          onClick={() => setSelectedMonthStr("")} 
+          className="text-xs text-slate-500 hover:text-blue-600 transition"
         >
-          <option>All months</option>
-          <option>August</option>
-          <option>July</option>
-          <option>June</option>
-        </select>
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-          className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-        >
-          <option>All years</option>
-          <option>2026</option>
-          <option>2025</option>
-        </select>
+          Clear
+        </button>
       </div>
 
       {/* Top 4 Stat Cards */}
@@ -77,9 +119,9 @@ export default function Dashboard() {
         </div>
 
         <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-blue-200 transition-colors">
-          <p className="text-[11px] font-bold tracking-wider uppercase text-slate-400">PROJECT WORTH</p>
-          <p className="text-3xl font-bold text-slate-900 mt-3 font-serif">₹{projectWorth.toLocaleString()}</p>
-          <p className="text-xs text-slate-500 mt-1">Total investment</p>
+          <p className="text-[11px] font-bold tracking-wider uppercase text-slate-400">TOTAL SPENT (WALLET)</p>
+          <p className="text-3xl font-bold text-slate-900 mt-3 font-serif">₹{walletBalance.toLocaleString()}</p>
+          <p className="text-xs text-slate-500 mt-1">Total investment on platform</p>
         </div>
       </div>
 
@@ -136,7 +178,7 @@ export default function Dashboard() {
         <div className="lg:col-span-4 bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm flex flex-col justify-between">
           <h3 className="text-base font-bold text-slate-900 mb-6">By skill category</h3>
           <div className="space-y-4 my-auto">
-            {skills.map((skill) => (
+            {dynamicSkills.length > 0 ? dynamicSkills.map((skill) => (
               <div key={skill.name} className="space-y-1.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-medium text-slate-700">{skill.name}</span>
@@ -149,7 +191,11 @@ export default function Dashboard() {
                   ></div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="py-8 text-center text-xs text-slate-500">
+                No skill data available.
+              </div>
+            )}
           </div>
         </div>
 
@@ -161,10 +207,21 @@ export default function Dashboard() {
           </div>
 
           <div className="divide-y divide-slate-100">
-            {/* Empty for now as freelancers are attached to projects, can be derived later */}
-            <div className="py-8 text-center text-xs text-slate-500">
-              No recent freelancer activity to display.
-            </div>
+            {recentFreelancersList.length > 0 ? recentFreelancersList.map(f => (
+              <div key={f.id} className="py-3 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs">
+                  {f.avatar}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">{f.name}</p>
+                  <p className="text-xs text-slate-500">{f.title}</p>
+                </div>
+              </div>
+            )) : (
+              <div className="py-8 text-center text-xs text-slate-500">
+                No recent freelancer activity to display.
+              </div>
+            )}
           </div>
         </div>
       </div>

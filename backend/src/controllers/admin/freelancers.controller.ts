@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../../config/prisma';
 import { Role } from '@prisma/client';
 
-export const getFreelancers = async (req: Request, res: Response) => {
+export const getFreelancers = async (_req: Request, res: Response) => {
   try {
     const freelancers = await prisma.user.findMany({
       where: { role: Role.FREELANCER },
@@ -33,5 +33,33 @@ export const getFreelancers = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error fetching freelancers:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch freelancers' });
+  }
+};
+
+export const createFreelancer = async (req: Request, res: Response) => {
+  try {
+    const { name, email, skills } = req.body;
+
+    const freelancer = await prisma.user.create({
+      data: {
+        email,
+        fullName: name,
+        role: Role.FREELANCER,
+        password: 'default_password', // Should be generated or sent via email in a real app
+        profile: {
+          create: {
+            skills: skills || ['General']
+          }
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      data: freelancer
+    });
+  } catch (error: any) {
+    console.error('Error creating freelancer:', error);
+    res.status(500).json({ success: false, error: 'Failed to create freelancer' });
   }
 };

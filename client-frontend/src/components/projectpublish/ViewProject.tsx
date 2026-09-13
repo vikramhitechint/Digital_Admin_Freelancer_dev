@@ -11,36 +11,45 @@ export default function ViewProject() {
   const [downloadToast, setDownloadToast] = useState("");
 
   useEffect(() => {
+    // Clear stale project data immediately when navigating to a different project
+    setProject(null);
+    setSelectedFreelancerProfile(null);
+
     const fetchProject = async () => {
       try {
         const res = await api.get(`/projects/${id}`);
-        // Map backend response to frontend UI properties
         const p = res.data;
+
+        // freelancerApproaches = only freelancers the ADMIN has explicitly assigned
+        // to THIS specific project. Brand-new projects have none.
+        const freelancerApproaches = (p.freelancers || []).map((f: any) => ({
+          id: f.freelancer.id,
+          name: f.freelancer.fullName,
+          subtitle: f.freelancer.role || 'Freelancer',
+          role: f.freelancer.role || 'Freelancer',
+          rating: f.freelancer.profile?.rating || '—',
+          completed: f.freelancer.profile?.completedProjects || 0,
+          bidAmount: p.budget,
+          avatarBg: 'bg-blue-100 text-blue-700',
+          avatarInitials: f.freelancer.fullName.charAt(0),
+          email: f.freelancer.email,
+          experience: f.freelancer.profile?.experience || 'N/A',
+          bio: f.freelancer.profile?.skills?.join(', ') || 'Professional freelancer',
+        }));
+
         const mapped = {
           ...p,
           name: p.title,
           amount: `₹${Number(p.budget).toLocaleString()}`,
           postedDate: new Date(p.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-          freelancerApproaches: p.freelancers?.map((f: any) => ({
-            id: f.freelancer.id,
-            name: f.freelancer.fullName,
-            subtitle: f.freelancer.role || 'Freelancer',
-            role: f.freelancer.role || 'Freelancer',
-            rating: "4.8", // Mocked
-            completed: 10, // Mocked
-            bidAmount: p.budget,
-            avatarBg: "bg-blue-100 text-blue-700",
-            avatarInitials: f.freelancer.fullName.charAt(0),
-            email: f.freelancer.email,
-            experience: "3+ years", // Mocked
-            bio: f.freelancer.skills?.join(', ') || 'Professional freelancer',
-          })) || []
+          freelancerApproaches,
         };
         setProject(mapped);
       } catch (err) {
-        console.error("Failed to fetch project:", err);
+        console.error('Failed to fetch project:', err);
       }
     };
+
     if (id) fetchProject();
   }, [id]);
 
@@ -99,50 +108,12 @@ Scope, APIs, Milestones & Acceptance Criteria.
   }
 
   // Safe fallbacks to guarantee rich display
-  const skills = project.skills?.length > 0 ? project.skills : ["React", "Node.js", "Tailwind CSS"];
+  const skills = project.skills || [];
 
-  const sampleLinks = project.sampleLinks?.length > 0 ? project.sampleLinks : [
-    { label: "Figma Prototype", url: "https://figma.com/@htge-project" },
-    { label: "Specification Document", url: "https://docs.htge.in" }
-  ];
+  const sampleLinks = project.assets?.filter((a: any) => a.type === 'link') || [];
+  const sampleImages = project.assets?.filter((a: any) => a.type !== 'link') || [];
 
-  const sampleImages = project.sampleImages?.length > 0 ? project.sampleImages : [
-    { name: "dashboard_wireframe.png", size: "1.4 MB", type: "image" },
-    { name: "project_scope_spec.pdf", size: "620 KB", type: "doc" }
-  ];
-
-  const approaches = project.freelancerApproaches?.length > 0 ? project.freelancerApproaches : [
-    {
-      id: 1,
-      name: "Rahul Sharma",
-      subtitle: "React Developer",
-      role: "Frontend",
-      rating: "4.8",
-      completed: 24,
-      bidAmount: project.amount,
-      avatarBg: "bg-blue-100 text-blue-700",
-      avatarInitials: "RS",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces",
-      email: "rahul.sharma@example.com",
-      experience: "5+ years",
-      bio: "Specialized in responsive UI engineering and modular React components."
-    },
-    {
-      id: 2,
-      name: "Priya Nair",
-      subtitle: "UI/UX Designer",
-      role: "Designer",
-      rating: "4.9",
-      completed: 18,
-      bidAmount: project.amount,
-      avatarBg: "bg-teal-100 text-teal-700",
-      avatarInitials: "PN",
-      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=faces",
-      email: "priya.nair@example.com",
-      experience: "4 years",
-      bio: "Design system specialist and Figma component expert."
-    }
-  ];
+  const approaches = project.freelancerApproaches || [];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">

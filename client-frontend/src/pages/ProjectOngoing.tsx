@@ -35,7 +35,7 @@ export default function ProjectsOngoing() {
     try {
       await api.put(`/projects/${projectId}/drop`);
       setProjectToDrop(null);
-      setDropToast(`Project dropped successfully. ${feePaid} effort charge processed.`);
+      setDropToast(`Drop requested successfully. Awaiting Admin approval for refund processing.`);
       setTimeout(() => setDropToast(""), 4000);
       fetchProjects();
     } catch (error) {

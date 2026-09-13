@@ -21,6 +21,21 @@ enum ProjectStatus {
   PUBLISHED
   ONGOING
   COMPLETED
+  DROPPED
+  DROP_REQUESTED
+}
+
+enum PaymentType {
+  ESCROW
+  PENALTY_10
+  REFUND_75
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
 
 model User {
@@ -38,6 +53,8 @@ model User {
   clientProjects     Project[]           @relation("ClientProjects")
   freelancerProjects FreelancerProject[]
   messages           Message[]
+  payments           Payment[]
+  walletBalance      Decimal  @default(0)
 }
 
 model Profile {
@@ -49,6 +66,10 @@ model Profile {
   companyName      String?
   industry         String?
   website          String?
+  bankName         String?
+  accountNumber    String?
+  ifscCode         String?
+  branchName       String?
 
   // Freelancer Specific
   skills           String[] // PostgreSQL array
@@ -64,6 +85,11 @@ model Project {
   budget        Decimal
   status        ProjectStatus @default(PUBLISHED)
   timeline      String?
+  completionPercentage Int @default(0)
+  googleDriveLink String?
+  
+  rating        Float?
+  review        String?
   
   // Relations
   clientId      String
@@ -71,9 +97,28 @@ model Project {
   freelancers   FreelancerProject[]
   messages      Message[]
   assets        Asset[]
+  payments      Payment[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  amount      Decimal
+  type        PaymentType
+  status      PaymentStatus @default(PENDING)
+  razorpayOrderId String?
+  razorpayPaymentId String?
+
+  // Relations
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // Many-to-Many Join Table for Freelancers working on Projects
@@ -99,6 +144,7 @@ model Message {
   project   Project  @relation(fields: [projectId], references: [id])
   senderId  String
   sender    User     @relation(fields: [senderId], references: [id])
+  freelancerId String? // Context ID to separate chats per freelancer for a project
 
   createdAt DateTime @default(now())
 }

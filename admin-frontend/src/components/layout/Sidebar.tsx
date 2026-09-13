@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, Users, FolderKanban,
   GitBranch, MessageSquare, CreditCard, TrendingUp,
   Wallet, AlertTriangle, ArrowDownCircle, Bell,
   BarChart3, Settings, ScrollText, LogOut,
-  Menu
+  Menu, CheckCircle
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import toast from 'react-hot-toast';
+import api from '@/lib/api';
 
 type NavItem = {
   to: string;
@@ -39,6 +40,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Ledger & Settlement',
     items: [
       { to: '/admin/payments',      icon: CreditCard,      label: 'Payments', count: '9' },
+      { to: '/admin/refunds',       icon: CheckCircle,     label: 'Refunds & Disputes' },
     ],
   },
   {
@@ -53,6 +55,33 @@ export default function Sidebar() {
   const { admin, logout } = useAuthStore();
   const { unreadCount } = useNotificationStore();
   const navigate = useNavigate();
+
+  const [counts, setCounts] = useState({
+    projects: '12',
+    companies: '7',
+    freelancers: '142',
+    disputes: '0'
+  });
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const res = await api.get('/admin/dashboard/stats');
+        if (res.data?.success) {
+          const { pipelineCounts, totalCompanies, totalFreelancers, activeDisputes } = res.data.data;
+          setCounts({
+            projects: (pipelineCounts?.total || 0).toString(),
+            companies: (totalCompanies || 0).toString(),
+            freelancers: (totalFreelancers || 0).toString(),
+            disputes: (activeDisputes || 0).toString()
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load sidebar counts", err);
+      }
+    };
+    fetchCounts();
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -93,38 +122,70 @@ export default function Sidebar() {
                 {section.label}
               </div>
               <nav className="space-y-1">
-                {section.items.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    className={({ isActive }) =>
-                      `flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                        isActive
-                          ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <span className="flex items-center space-x-3">
-                          <item.icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-                          <span className={isActive ? 'font-bold' : 'font-medium'}>{item.label}</span>
-                        </span>
-                        {item.badge && (
-                          <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold ${isActive ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
-                            {item.badge}
-                          </span>
-                        )}
-                        {item.count && !item.badge && (
-                          <span className={`text-xs font-mono font-medium ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>
-                            {item.label === 'Notifications' && unreadCount > 0 ? unreadCount : item.count}
-                          </span>
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
+                {section.items.map((item) => {
+                  let displayCount = item.count;
+                  if (item.label === 'Projects & Dispatch') displayCount = counts.projects;
+                  if (item.label === 'Companies') displayCount = counts.companies;
+                  if (item.label === 'Freelancers') displayCount = counts.freelancers;
+                  if (item.label === 'Refunds & Disputes' && Number(counts.disputes) > 0) {
+                    displayCount = counts.disputes;
+                  }
+
+                  const isDisputeHighlight = item.label === 'Refunds & Disputes' && Number(counts.disputes) > 0;
+
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        `flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group ${
+                          isActive 
+                            ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' 
+                            : isDisputeHighlight 
+                              ? 'bg-rose-50/50 hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-transparent'
+                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <div className="flex items-center space-x-3">
+                            <item.icon 
+                              className={`w-5 h-5 transition-colors ${
+                                isActive 
+                                  ? 'text-blue-600' 
+                                  : isDisputeHighlight 
+                                    ? 'text-rose-500' 
+                                    : 'text-slate-400 group-hover:text-blue-600'
+                              }`} 
+                            />
+                            <span className={`font-semibold ${isDisputeHighlight && !isActive ? 'text-rose-700' : ''}`}>{item.label}</span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            {item.badge && (
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-wider ${item.badgeColor}`}>
+                                {item.badge}
+                              </span>
+                            )}
+                            
+                            {displayCount && (
+                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                isDisputeHighlight
+                                  ? 'bg-rose-100 text-rose-700 animate-pulse ring-1 ring-rose-200'
+                                  : isActive 
+                                    ? 'bg-blue-100 text-blue-700' 
+                                    : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600'
+                              }`}>
+                                {displayCount}
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </NavLink>
+                  );
+                })}
               </nav>
             </div>
           ))}

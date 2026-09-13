@@ -10,8 +10,11 @@ import ViewOngoingProject from "./components/projectongoing/ViewOngoingProject";
 import ProjectChat from "./components/chatarea/ProjectChat";
 import ProjectsComplete from "./pages/ProjectComplete";
 import ViewCompleteProject from "./components/projectcomplete/ViewCompleteProject";
+import ProjectDropped from "./pages/ProjectDropped";
 import Notifications from "./pages/Notification";
 import Settings from "./pages/Settings";
+import PaymentWallet from "./pages/PaymentWallet";
+import { Toaster } from "react-hot-toast";
 
 // ============================================================================
 // Protected Route Component: Only allows logged-in users
@@ -23,29 +26,46 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return <>{children}</>;
+}
+
+// ============================================================================
+// Public Route Component: Redirects to dashboard if already logged in
+// ============================================================================
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const authUser = JSON.parse(localStorage.getItem("htge_auth_user") || "null");
+  
+  if (authUser && authUser.isLoggedIn) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
 }
 
 // ============================================================================
 // Main App Component with Routes
 // ============================================================================
 export default function App() {
-  const authUser = JSON.parse(localStorage.getItem("htge_auth_user") || "null");
-  const isLoggedIn = authUser && authUser.isLoggedIn;
-
   return (
+    <>
     <Routes>
       {/* 1. Root Route: Goes directly to /login first (or /dashboard if already logged in) */}
       <Route
         path="/"
-        element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />}
+        element={
+          <PublicRoute>
+            <Navigate to="/login" replace />
+          </PublicRoute>
+        }
       />
 
       {/* 2. Login Page Route (Standalone, no Layout) */}
       <Route
         path="/login"
         element={
-          isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login />
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
         }
       />
 
@@ -76,17 +96,24 @@ export default function App() {
           {/* Completed Projects */}
           <Route path="complete" element={<ProjectsComplete />} />
           <Route path="complete/:id" element={<ViewCompleteProject />} />
+          <Route path="complete/:id/chat/:freelancerId" element={<ProjectChat />} />
+
+          {/* Dropped Projects */}
+          <Route path="dropped" element={<ProjectDropped />} />
         </Route>
 
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/payment-wallet" element={<PaymentWallet />} />
       </Route>
 
       {/* 4. Catch-all fallback */}
       <Route
         path="*"
-        element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />}
+        element={<Navigate to="/" replace />}
       />
     </Routes>
+    <Toaster position="top-right" />
+    </>
   );
 }

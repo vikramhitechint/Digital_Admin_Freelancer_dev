@@ -27,6 +27,7 @@ export const getAllProjects = async (filters: { status?: ProjectStatus; clientId
           }
         }
       },
+      payments: true,
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -54,6 +55,7 @@ export const getProjectById = async (id: string) => {
           }
         }
       },
+      payments: true,
     },
   });
 };
@@ -100,20 +102,98 @@ export const updateProjectStatus = async (projectId: string, status: ProjectStat
 };
 
 export const dropProject = async (projectId: string) => {
-  // Simulates a 10% fee calculation and project deletion/archiving.
-  // In a real system, this would trigger Stripe or Razorpay APIs to handle refunds.
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) throw new Error('Project not found');
 
-  const fee = Number(project.budget) * 0.10;
+  // Update status to DROP_REQUESTED
+  await prisma.project.update({
+    where: { id: projectId },
+    data: { status: 'DROP_REQUESTED' as any }
+  });
   
-  // Archiving/deleting the project
-  await prisma.project.delete({ where: { id: projectId } });
+  return { success: true, message: 'Drop requested successfully. Awaiting Admin Approval.' };
+};
+
+export const approveDrop = async (projectId: string) => {
+  const project = await prisma.project.findUnique({ 
+    where: { id: projectId },
+    include: { payments: true } 
+  });
+  if (!project) throw new Error('Project not found');
+
+  let message = '';
+  // Determine if it was ONGOING based on ESCROW payment
+  const hasEscrow = project.payments.some((p) => p.type === 'ESCROW');
   
-  return { success: true, message: `Project dropped. Platform fee of $${fee.toFixed(2)} retained.` };
+  if (hasEscrow) {
+    // 90% refund (10% penalty)
+    const refundAmount = Number(project.budget) * 0.90;
+    
+    // Create refund payment record
+    await prisma.payment.create({
+      data: {
+        projectId,
+        userId: project.clientId,
+        amount: refundAmount,
+        type: 'REFUND_75', // Keeping type name for compatibility, but it's 90%
+        status: 'COMPLETED'
+      }
+    });
+
+    // We subtract the 90% refund from their wallet (total spent)
+    await prisma.user.update({
+      where: { id: project.clientId },
+      data: { walletBalance: { decrement: refundAmount } }
+    });
+    message = `Project dropped. 10% penalty applied. 90% (₹${refundAmount.toLocaleString()}) refunded.`;
+  } else {
+    // Dropped from PUBLISHED: client pays 10% penalty
+    const penaltyAmount = Number(project.budget) * 0.10;
+    await prisma.payment.create({
+      data: {
+        projectId,
+        userId: project.clientId,
+        amount: penaltyAmount,
+        type: 'PENALTY_10',
+        status: 'COMPLETED'
+      }
+    });
+    // Add penalty to wallet total spent
+    await prisma.user.update({
+      where: { id: project.clientId },
+      data: { walletBalance: { increment: penaltyAmount } }
+    });
+    message = `Project dropped. 10% (₹${penaltyAmount.toLocaleString()}) penalty paid.`;
+  }
+
+  // Update status to DROPPED
+  await prisma.project.update({
+    where: { id: projectId },
+    data: { status: 'DROPPED' }
+  });
+  
+  return { success: true, message };
 };
 
 export const completeProject = async (projectId: string) => {
   // Simulates releasing escrow to the freelancer
   return await updateProjectStatus(projectId, ProjectStatus.COMPLETED);
+};
+
+export const updateProjectProgress = async (projectId: string, completionPercentage: number, googleDriveLink?: string) => {
+  const data: any = { completionPercentage };
+  if (googleDriveLink !== undefined) {
+    data.googleDriveLink = googleDriveLink;
+  }
+  return await prisma.project.update({
+    where: { id: projectId },
+    data,
+  });
+};
+
+export const rateProject = async (projectId: string, rating: number, review?: string) => {
+  return await prisma.project.update({
+    where: { id: projectId },
+    data: { rating, review },
+  });
 };

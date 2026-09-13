@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../../config/prisma';
 
-export const getPayments = async (req: Request, res: Response) => {
+export const getPayments = async (_req: Request, res: Response) => {
   try {
     const projects = await prisma.project.findMany({
       include: {

@@ -53,31 +53,36 @@ export default function FreelancersPage() {
     );
   });
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newTitle || !newEmail || !newSkills) return;
 
     const parsedSkills = newSkills.split(',').map(s => s.trim()).filter(Boolean);
 
-    const newFl: Freelancer = {
-      id: `#FL-${Math.floor(1000 + Math.random() * 9000)}`,
-      name: newName,
-      title: newTitle,
-      email: newEmail,
-      location: 'Remote',
-      status: 'Available',
-      rating: 5.0,
-      completedProjects: 0,
-      skills: parsedSkills.length > 0 ? parsedSkills : ['General']
-    };
+    try {
+      const res = await api.post('/admin/freelancers', {
+        name: newName,
+        title: newTitle,
+        email: newEmail,
+        skills: parsedSkills.length > 0 ? parsedSkills : ['General']
+      });
 
-    setFreelancers([newFl, ...freelancers]);
-    setIsModalOpen(false);
-    setNewName('');
-    setNewTitle('');
-    setNewEmail('');
-    setNewSkills('');
-    toast.success('Freelancer profile created successfully!');
+      if (res.data.success) {
+        toast.success('Freelancer profile created successfully!');
+        setIsModalOpen(false);
+        setNewName('');
+        setNewTitle('');
+        setNewEmail('');
+        setNewSkills('');
+        // Reload freelancers list
+        fetchFreelancers();
+      } else {
+        toast.error('Failed to create freelancer profile.');
+      }
+    } catch (err) {
+      console.error('Error creating freelancer:', err);
+      toast.error('Failed to create freelancer profile.');
+    }
   };
 
   const handleView = (name: string) => {

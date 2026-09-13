@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import prisma from '../../config/prisma';
-import { ProjectStatus, Role } from '@prisma/client';
+import { ProjectStatus } from '@prisma/client';
 
-export const getDashboardStats = async (req: Request, res: Response) => {
+export const getDashboardStats = async (_req: Request, res: Response) => {
   try {
     // 1. Total Revenue (Budget of Completed Projects)
     const completedProjects = await prisma.project.aggregate({
@@ -23,9 +23,9 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       where: { status: ProjectStatus.PUBLISHED }
     });
 
-    // 4. Active Disputes (Count of Dropped Projects)
+    // 4. Active Disputes (Count of DROP_REQUESTED Projects)
     const activeDisputes = await prisma.project.count({
-      where: { status: ProjectStatus.DROPPED }
+      where: { status: 'DROP_REQUESTED' as any }
     });
 
     // 5. Pipeline Breakdown
@@ -49,9 +49,12 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       if (group.status === ProjectStatus.PUBLISHED) pipelineCounts.pendingReview = group._count.status;
       if (group.status === ProjectStatus.ONGOING) pipelineCounts.ongoing = group._count.status;
       if (group.status === ProjectStatus.COMPLETED) pipelineCounts.completed = group._count.status;
-      if (group.status === ProjectStatus.DROPPED) pipelineCounts.dropped = group._count.status;
     });
     pipelineCounts.total = totalProjects;
+
+    // 6. User Counts
+    const totalFreelancers = await prisma.user.count({ where: { role: 'FREELANCER' } });
+    const totalCompanies = await prisma.user.count({ where: { role: 'CLIENT' } });
 
     res.json({
       success: true,
@@ -60,7 +63,9 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         pendingPayouts,
         awaitingReview,
         activeDisputes,
-        pipelineCounts
+        pipelineCounts,
+        totalFreelancers,
+        totalCompanies
       }
     });
   } catch (error: any) {

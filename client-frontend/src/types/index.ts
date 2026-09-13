@@ -56,4 +56,5 @@ export interface UIProject {
   amount: string;
   approaches: number;
   postedDate: string;
+  status?: string;
 }

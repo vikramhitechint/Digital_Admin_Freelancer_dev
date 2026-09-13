@@ -78,10 +78,42 @@ export const dropProject = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+export const approveDrop = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = req.params.id as string;
+    const result = await projectService.approveDrop(id);
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const completeProject = async (req: Request, res: Response): Promise<void> => {
   try {
     const id = req.params.id as string;
     const result = await projectService.completeProject(id);
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateProjectProgress = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = req.params.id as string;
+    const { completionPercentage, googleDriveLink } = req.body;
+    const result = await projectService.updateProjectProgress(id, completionPercentage, googleDriveLink);
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const rateProject = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = req.params.id as string;
+    const { rating, review } = req.body;
+    const result = await projectService.rateProject(id, rating, review);
     res.json(result);
   } catch (error: any) {
     res.status(500).json({ error: error.message });

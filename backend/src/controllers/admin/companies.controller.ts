@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../../config/prisma';
 import { Role } from '@prisma/client';
 
-export const getCompanies = async (req: Request, res: Response) => {
+export const getCompanies = async (_req: Request, res: Response) => {
   try {
     const companies = await prisma.user.findMany({
       where: { role: Role.CLIENT },

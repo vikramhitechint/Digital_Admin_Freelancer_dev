@@ -27,6 +27,7 @@ import ProjectDetailPage from '@/features/projects/ProjectDetailPage';
 
 // Payments
 import PaymentsPage from '@/features/payments/PaymentsPage';
+import RefundsPage from '@/features/payments/RefundsPage';
 
 // Settings
 import SettingsPage from '@/features/settings/SettingsPage';
@@ -86,6 +87,7 @@ export default function AppRouter() {
           <Route path="projects/:id" element={<ProjectDetailPage />} />
 
           <Route path="payments" element={<PaymentsPage />} />
+          <Route path="refunds" element={<RefundsPage />} />
           
           <Route path="settings" element={<SettingsPage />} />
         </Route>

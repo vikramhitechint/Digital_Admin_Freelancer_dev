@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Bell, Clock, CheckCircle, AlertCircle, ArrowRightCircle } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function DashboardPage() {
@@ -10,29 +11,91 @@ export default function DashboardPage() {
     activeDisputes: 0,
     pipelineCounts: { pendingReview: 0, ongoing: 0, completed: 0, dropped: 0, total: 0 }
   });
+  const [allProjects, setAllProjects] = useState<any[]>([]);
 
   useEffect(() => {
     api.get('/admin/dashboard/stats').then(res => {
-      if (res.data.success) {
-        setStats(res.data.data);
-      }
+      if (res.data.success) setStats(res.data.data);
+    }).catch(console.error);
+    // Fetch all projects for dynamic chart
+    api.get('/projects').then(res => {
+      setAllProjects(Array.isArray(res.data) ? res.data : []);
     }).catch(console.error);
   }, []);
 
-  const chartPaths = {
-    revenue: {
-      area: 'M 60 148 C 115 135, 150 160, 185 115 C 220 70, 275 105, 310 92 C 345 80, 400 130, 435 68 C 470 20, 520 75, 560 52 C 600 30, 640 38, 680 25 L 680 200 L 60 200 Z',
-      line: 'M 60 148 C 115 135, 150 160, 185 115 C 220 70, 275 105, 310 92 C 345 80, 400 130, 435 68 C 470 20, 520 75, 560 52 C 600 30, 640 38, 680 25'
-    },
-    earnings: {
-      area: 'M 60 165 C 115 155, 150 170, 185 138 C 220 100, 275 125, 310 115 C 345 105, 400 145, 435 95 C 470 50, 520 95, 560 76 C 600 58, 640 65, 680 52 L 680 200 L 60 200 Z',
-      line: 'M 60 165 C 115 155, 150 170, 185 138 C 220 100, 275 125, 310 115 C 345 105, 400 145, 435 95 C 470 50, 520 95, 560 76 C 600 58, 640 65, 680 52'
-    },
-    commissions: {
-      area: 'M 60 188 C 115 182, 150 188, 185 178 C 220 165, 275 174, 310 170 C 345 168, 400 180, 435 162 C 470 145, 520 160, 560 152 C 600 144, 640 148, 680 140 L 680 200 L 60 200 Z',
-      line: 'M 60 188 C 115 182, 150 188, 185 178 C 220 165, 275 174, 310 170 C 345 168, 400 180, 435 162 C 470 145, 520 160, 560 152 C 600 144, 640 148, 680 140'
-    }
+  // Build last 6 months of revenue data from real projects
+  const chartData = useMemo(() => {
+    const now = new Date();
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+      return {
+        label: d.toLocaleString('en', { month: 'short' }).toUpperCase(),
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        value: 0
+      };
+    });
+    allProjects.forEach(p => {
+      const d = new Date(p.createdAt);
+      const idx = months.findIndex(m => m.year === d.getFullYear() && m.month === d.getMonth());
+      if (idx >= 0) {
+        const budget = Number(p.budget) || 0;
+        const factor = chartMode === 'earnings' ? 0.85 : chartMode === 'commissions' ? 0.15 : 1;
+        months[idx].value += budget * factor;
+      }
+    });
+    return months;
+  }, [allProjects, chartMode]);
+
+  const maxVal = Math.max(...chartData.map(m => m.value), 1);
+  const peakMonth = chartData.reduce((a, b) => b.value > a.value ? b : a, chartData[0]);
+  const avgVal = chartData.reduce((s, m) => s + m.value, 0) / (chartData.length || 1);
+
+  const formatAmount = (v: number) => {
+    if (v >= 100000) return `₹${(v/100000).toFixed(1)}L`;
+    if (v >= 1000) return `₹${(v/1000).toFixed(0)}K`;
+    return `₹${v.toFixed(0)}`;
   };
+
+  // Generate Recent Notifications from projects
+  const recentNotifications = useMemo(() => {
+    const notifyProjects = allProjects
+      .filter(p => ['COMPLETED', 'DROP_REQUESTED', 'DROPPED'].includes(p.status))
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .slice(0, 6); // Take top 6
+
+    return notifyProjects.map(p => {
+      if (p.status === 'COMPLETED') {
+        return {
+          id: p.id,
+          type: 'success',
+          title: 'Funds released from escrow securely',
+          desc: `Project "${p.title}" completed. Payout of ₹${Number(p.budget).toLocaleString()} settled.`,
+          time: new Date(p.updatedAt).toLocaleString(),
+          icon: CheckCircle
+        };
+      } else if (p.status === 'DROP_REQUESTED') {
+        return {
+          id: p.id,
+          type: 'warning',
+          title: 'Refund Request Pending',
+          desc: `Client requested drop for "${p.title}". Awaiting Admin review.`,
+          time: new Date(p.updatedAt).toLocaleString(),
+          icon: AlertCircle
+        };
+      } else {
+        return {
+          id: p.id,
+          type: 'danger',
+          title: 'Project Dropped & Refund Processed',
+          desc: `Project "${p.title}" dropped. Escrow funds refunded or penalized.`,
+          time: new Date(p.updatedAt).toLocaleString(),
+          icon: ArrowRightCircle
+        };
+      }
+    });
+  }, [allProjects]);
+
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] w-full mx-auto">
@@ -193,11 +256,14 @@ export default function DashboardPage() {
             <div className="grid grid-cols-3 gap-4 my-4 py-2 px-3 bg-[#F8FAFC] rounded-lg border border-slate-100">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Peak Month</span>
-                <div className="text-[14px] font-bold text-slate-800 font-mono">₹24,35,000 <span className="text-[11px] font-normal text-emerald-600">(Jun)</span></div>
+                <div className="text-[14px] font-bold text-slate-800 font-mono">
+                  {formatAmount(peakMonth?.value || 0)}{' '}
+                  <span className="text-[11px] font-normal text-emerald-600">({peakMonth?.label})</span>
+                </div>
               </div>
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Monthly Avg</span>
-                <div className="text-[14px] font-bold text-slate-800 font-mono">₹19,72,500</div>
+                <div className="text-[14px] font-bold text-slate-800 font-mono">{formatAmount(avgVal)}</div>
               </div>
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Platform Take Rate</span>
@@ -205,58 +271,57 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="relative w-full h-[250px] mt-2 group">
+            <div className="relative w-full h-[250px] mt-2">
               <svg className="w-full h-full overflow-visible" viewBox="0 0 700 230" preserveAspectRatio="none">
                 <defs>
-                  <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#2563EB" stopOpacity="0.35"/>
-                    <stop offset="60%" stopColor="#8B5CF6" stopOpacity="0.12"/>
-                    <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.0"/>
+                  <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#3B82F6"/>
+                    <stop offset="100%" stopColor="#2563EB"/>
                   </linearGradient>
-                  <linearGradient id="strokeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#2563EB"/>
-                    <stop offset="70%" stopColor="#6366F1"/>
-                    <stop offset="100%" stopColor="#8B5CF6"/>
+                  <linearGradient id="barEmpty" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#E2E8F0"/>
+                    <stop offset="100%" stopColor="#CBD5E1"/>
                   </linearGradient>
                 </defs>
 
-                <line x1="40" y1="20" x2="690" y2="20" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3 3"/>
-                <line x1="40" y1="65" x2="690" y2="65" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3 3"/>
-                <line x1="40" y1="110" x2="690" y2="110" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3 3"/>
-                <line x1="40" y1="155" x2="690" y2="155" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3 3"/>
-                <line x1="40" y1="200" x2="690" y2="200" stroke="#E2E8F0" strokeWidth="1"/>
+                {/* Grid Lines */}
+                {[20, 65, 110, 155, 200].map((y, i) => (
+                  <line key={i} x1="40" y1={y} x2="690" y2={y} stroke={y===200?"#E2E8F0":"#F1F5F9"} strokeWidth="1" strokeDasharray={y===200?"0":"4 4"}/>
+                ))}
 
-                <text x="5" y="24" fill="#94A3B8" fontSize="10" fontFamily="monospace" fontWeight="500">₹25L</text>
-                <text x="5" y="69" fill="#94A3B8" fontSize="10" fontFamily="monospace" fontWeight="500">₹20L</text>
-                <text x="5" y="114" fill="#94A3B8" fontSize="10" fontFamily="monospace" fontWeight="500">₹15L</text>
-                <text x="5" y="159" fill="#94A3B8" fontSize="10" fontFamily="monospace" fontWeight="500">₹10L</text>
-                <text x="5" y="204" fill="#94A3B8" fontSize="10" fontFamily="monospace" fontWeight="500">₹0L</text>
+                {/* Y-Axis Labels */}
+                {[maxVal, maxVal*0.75, maxVal*0.5, maxVal*0.25, 0].map((v, i) => (
+                  <text key={i} x="5" y={20 + i*45} fill="#94A3B8" fontSize="10" fontFamily="monospace" fontWeight="500">{formatAmount(v)}</text>
+                ))}
 
-                <path d={chartPaths[chartMode].area} fill="url(#areaGradient)" className="transition-all duration-500 ease-in-out"/>
-                <path d={chartPaths[chartMode].line} fill="none" stroke="url(#strokeGradient)" strokeWidth="3.5" strokeLinecap="round" className="transition-all duration-500 ease-in-out"/>
-
-                <circle cx="60" cy="148" r="4.5" fill="#FFFFFF" stroke="#2563EB" strokeWidth="2.5"/>
-                <circle cx="185" cy="115" r="4.5" fill="#FFFFFF" stroke="#3B82F6" strokeWidth="2.5"/>
-                <circle cx="310" cy="92" r="4.5" fill="#FFFFFF" stroke="#6366F1" strokeWidth="2.5"/>
-                <circle cx="435" cy="68" r="4.5" fill="#FFFFFF" stroke="#6366F1" strokeWidth="2.5"/>
-                <circle cx="560" cy="52" r="4.5" fill="#FFFFFF" stroke="#8B5CF6" strokeWidth="2.5"/>
-                <circle cx="680" cy="25" r="8" fill="#8B5CF6" fillOpacity="0.25"/>
-                <circle cx="680" cy="25" r="5" fill="#8B5CF6" stroke="#FFFFFF" strokeWidth="2"/>
+                {/* Dynamic Bars */}
+                {chartData.map((m, i) => {
+                  const chartH = 180; // px between top(20) and baseline(200)
+                  const barH = m.value > 0 ? Math.max((m.value / maxVal) * chartH, 6) : 4;
+                  const x = 73 + i * 110;
+                  const isLast = i === chartData.length - 1;
+                  const isPeak = m.label === peakMonth?.label && m.value > 0;
+                  return (
+                    <g key={i}>
+                      <rect
+                        x={x} y={200 - barH} width="44" height={barH}
+                        fill={m.value > 0 ? (isPeak ? "url(#barGradient)" : "url(#barGradient)") : "url(#barEmpty)"}
+                        rx="6"
+                        opacity={m.value > 0 ? (isPeak ? 1 : 0.7) : 0.4}
+                        className="hover:opacity-100 transition-opacity cursor-pointer"
+                      />
+                      <text
+                        x={x + 22} y="225"
+                        fill={isPeak ? "#2563EB" : "#64748B"}
+                        fontSize="11" fontWeight={isPeak ? "800" : "700"}
+                        textAnchor="middle" letterSpacing="0.05em"
+                      >
+                        {m.label}
+                      </text>
+                    </g>
+                  );
+                })}
               </svg>
-
-              <div className="absolute right-4 top-0 bg-slate-900 text-white text-[11px] py-1.5 px-3 rounded-lg shadow-lg border border-slate-700 font-mono pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="text-[10px] text-slate-400 font-sans font-medium">June 2025 (MTD)</div>
-                <div className="font-bold text-emerald-400 text-[13px]">₹24,35,000</div>
-              </div>
-            </div>
-
-            <div className="flex justify-between pl-14 pr-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1">
-              <span>Jan 2025</span>
-              <span>Feb</span>
-              <span>Mar</span>
-              <span>Apr</span>
-              <span>May</span>
-              <span className="text-blue-600 font-extrabold">Jun (Current)</span>
             </div>
           </div>
         </div>
@@ -310,6 +375,47 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* SECTION 3 — RECENT ACTIVITY & NOTIFICATIONS */}
+      <section className="bg-white rounded-[14px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div className="flex items-center gap-2">
+            <Bell className="w-4 h-4 text-slate-500" />
+            <h3 className="text-[15px] font-bold text-slate-900">Recent Notifications & Alerts</h3>
+          </div>
+        </div>
+        <div className="p-0">
+          {recentNotifications.length > 0 ? (
+            <div className="divide-y divide-slate-100">
+              {recentNotifications.map((notif) => (
+                <div key={notif.id} className="p-4 hover:bg-slate-50/50 transition-colors flex items-start gap-4">
+                  <div className={`p-2 rounded-lg flex-shrink-0 ${
+                    notif.type === 'success' ? 'bg-emerald-50 text-emerald-600' :
+                    notif.type === 'warning' ? 'bg-amber-50 text-amber-600' :
+                    'bg-purple-50 text-purple-600'
+                  }`}>
+                    <notif.icon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-bold text-slate-900">{notif.title}</h4>
+                    <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{notif.desc}</p>
+                    <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-400 font-medium">
+                      <Clock className="w-3.5 h-3.5" />
+                      {notif.time}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-12 text-center flex flex-col items-center">
+              <CheckCircle className="w-10 h-10 text-emerald-400 mb-3" />
+              <p className="text-sm font-bold text-slate-700">You're all caught up!</p>
+              <p className="text-xs text-slate-500 mt-1">No recent notifications or alerts to show.</p>
+            </div>
+          )}
         </div>
       </section>
 
