@@ -127,35 +127,7 @@ async function main() {
     },
   });
 
-  // 3. Create Projects
-  const p1 = await prisma.project.create({
-    data: {
-      title: 'Zero-Knowledge Rollup Settlement Bridge',
-      description: 'We need a robust layer-2 settlement bridge built on Ethereum. The freelancer must have deep knowledge of Cairo, Solidity, and zero-knowledge proofs. We expect full test coverage and audited smart contracts.',
-      budget: 480000,
-      timeline: '4 Weeks',
-      status: ProjectStatus.PUBLISHED,
-      clientId: c1.id,
-    }
-  });
-
-  const p2 = await prisma.project.create({
-    data: {
-      title: 'PCI-DSS V4 Token Vault & SDK',
-      description: 'Looking to build a completely isolated tokenization vault to store credit card data for our payment gateway. Requires strict compliance with PCI-DSS v4 guidelines and an easy-to-use Node.js SDK.',
-      budget: 620000,
-      timeline: '6 Weeks',
-      status: ProjectStatus.PUBLISHED,
-      clientId: c2.id,
-      freelancers: {
-        create: [
-          { freelancerId: f1.id }
-        ]
-      }
-    }
-  });
-
-  console.log('Seeding finished.');
+  console.log('Seeding finished. User accounts and profiles are ready for end-to-end testing.');
 }
 
 main()

@@ -17,16 +17,12 @@ function ViewCompleteProjectContent() {
         const res = await api.get(`/projects/${id}`);
         const p = res.data;
         
-        // Find if rating is stored in local storage for demo
-        const savedProjects = JSON.parse(localStorage.getItem("htge_completed_projects") || "[]");
-        const savedData = savedProjects.find((sp: any) => String(sp.id) === String(id));
-
         const mapped = {
           ...p,
           name: p.title,
           amount: `₹${Number(p.budget).toLocaleString()}`,
           completionDate: new Date(p.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-          duration: "1 month", // Mocked
+          duration: p.timeline || 'TBD',
           rating: p.rating || 0,
           review: p.review || "",
           freelancer: p.freelancers?.[0]?.freelancer ? {

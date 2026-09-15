@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import routes from './routes';
 
-dotenv.config();
+dotenv.config({ override: true });
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
@@ -19,3 +19,4 @@ app.use('/api', routes);
 app.listen(PORT, () => {
   console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
+

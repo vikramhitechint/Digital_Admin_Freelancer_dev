@@ -25,7 +25,7 @@ export default function ViewOngoingProject() {
             name: f.freelancer.fullName,
             subtitle: f.freelancer.role || 'Freelancer',
             role: f.freelancer.role || 'Freelancer',
-            progress: 65, // Mocked
+            progress: p.completionPercentage || 0,
             avatarBg: "bg-blue-100 text-blue-700",
             avatarInitials: f.freelancer.fullName.charAt(0),
             avatar: null,
